@@ -1,9 +1,10 @@
 """
 Gate Model Training Pipeline (v1/v2/v3 / round-tagged)
 =======================================================
-Trains a binary classifier (EfficientNet-B0 or MobileNetV3-Large) on the gate
-training split identified by `--tag`, calibrates probabilities, runs a
-threshold sweep, and saves model + calibrator + reproducibility config.
+Trains a binary classifier (EfficientNet-B0, MobileNetV3-Large, or
+MobileNetV3-Small / light gate) on the gate training split identified by
+`--tag`, calibrates probabilities, runs a threshold sweep, and saves model +
+calibrator + reproducibility config.
 
 Recovered from git commit e361cee:src/train_gate.py and adapted:
   - MLflow optional (no-op if not installed)
@@ -16,6 +17,7 @@ Usage
 -----
     python scripts/train_gate.py --tag v1 --gate effnetb0
     python scripts/train_gate.py --tag v2 --gate effnetb0 --device mps --batch_size 8 --epochs 3
+    python scripts/train_gate.py --tag v1 --gate mnv3_small      # light gate
 """
 
 from __future__ import annotations
@@ -203,6 +205,17 @@ def build_gate_model(gate_name: str, num_classes: int = 1, pretrained: bool = Tr
             nn.Hardswish(inplace=True),
             nn.Dropout(p=0.2, inplace=True),
             nn.Linear(1280, num_classes),
+        )
+    elif gate_name == "mnv3_small":
+        weights = models.MobileNet_V3_Small_Weights.DEFAULT if pretrained else None
+        model = models.mobilenet_v3_small(weights=weights)
+        in_features = model.classifier[0].in_features
+        # Simple [Dropout, Linear] head — matches GateModel.head layout so the
+        # checkpoint round-trips through GateModel.load's key remap (the same
+        # convention effnetb0 uses).
+        model.classifier = nn.Sequential(
+            nn.Dropout(p=0.3, inplace=True),
+            nn.Linear(in_features, num_classes),
         )
     else:
         raise ValueError(f"Unsupported gate model: {gate_name}")
@@ -414,7 +427,8 @@ def parse_args() -> argparse.Namespace:
                    help="Version tag (e.g. v1, v2, v3, round1, round2, round3). "
                         "CSVs read from splits/{tag}_train_gate_mix.csv etc.")
     p.add_argument("--gate", type=str, required=True,
-                   choices=["effnetb0", "mnv3_large"], help="Gate model variant")
+                   choices=["effnetb0", "mnv3_large", "mnv3_small"],
+                   help="Gate model variant (mnv3_small = light gate)")
     p.add_argument("--config", type=str, default=str(DEFAULT_CONFIG))
     p.add_argument("--device", type=str, default=None)
     p.add_argument("--batch_size", type=int)

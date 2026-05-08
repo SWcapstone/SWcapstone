@@ -7,6 +7,7 @@ Outputs p_gate(anomaly) in [0, 1] via sigmoid on a single logit.
 Supported backbones:
     - EfficientNet-B0   (torchvision.models.efficientnet_b0)
     - MobileNetV3-Large (torchvision.models.mobilenet_v3_large)
+    - MobileNetV3-Small (torchvision.models.mobilenet_v3_small)  # light gate
 
 Usage:
     from src.gate_model import GateModel
@@ -50,7 +51,11 @@ logger = logging.getLogger(__name__)
 # Constants
 # ---------------------------------------------------------------------------
 INPUT_SIZE: int = 224
-_VALID_BACKBONES = ("efficientnet_b0", "mobilenet_v3_large")
+_VALID_BACKBONES = (
+    "efficientnet_b0",
+    "mobilenet_v3_large",
+    "mobilenet_v3_small",
+)
 
 
 # ---------------------------------------------------------------------------
@@ -142,9 +147,16 @@ def _build_backbone(
         base.classifier = nn.Identity()
         return base, num_features
 
-    # mobilenet_v3_large
-    weights = models.MobileNet_V3_Large_Weights.DEFAULT if pretrained else None
-    base = models.mobilenet_v3_large(weights=weights)
+    if name == "mobilenet_v3_large":
+        weights = models.MobileNet_V3_Large_Weights.DEFAULT if pretrained else None
+        base = models.mobilenet_v3_large(weights=weights)
+        num_features = base.classifier[0].in_features
+        base.classifier = nn.Identity()
+        return base, num_features
+
+    # mobilenet_v3_small (light gate)
+    weights = models.MobileNet_V3_Small_Weights.DEFAULT if pretrained else None
+    base = models.mobilenet_v3_small(weights=weights)
     num_features = base.classifier[0].in_features
     base.classifier = nn.Identity()
     return base, num_features
@@ -159,7 +171,8 @@ class GateModel:
     Parameters
     ----------
     backbone : str
-        One of ``"efficientnet_b0"`` or ``"mobilenet_v3_large"``.
+        One of ``"efficientnet_b0"``, ``"mobilenet_v3_large"``, or
+        ``"mobilenet_v3_small"`` (light gate).
     pretrained : bool
         Load ImageNet-pretrained weights for the backbone.
     device : str or None
@@ -773,7 +786,19 @@ class GateModel:
         dev = _resolve_device(device)
         payload = torch.load(path, map_location=dev, weights_only=False)
 
-        backbone_name = payload.get("backbone_name", "efficientnet_b0")
+        # train_gate.py writes "backbone" and "gate_name"; older checkpoints use
+        # "backbone_name". Resolve in that priority and fall back to gate_name.
+        gate_to_backbone = {
+            "effnetb0": "efficientnet_b0",
+            "mnv3_large": "mobilenet_v3_large",
+            "mnv3_small": "mobilenet_v3_small",
+        }
+        backbone_name = (
+            payload.get("backbone_name")
+            or payload.get("backbone")
+            or gate_to_backbone.get(payload.get("gate_name", ""))
+            or "efficientnet_b0"
+        )
         instance = cls(backbone=backbone_name, pretrained=False, device=str(dev))
 
         # --- 가중치 이름표(Key) 강제 매칭 로직 시작 ---
