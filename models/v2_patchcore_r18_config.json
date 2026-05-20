@@ -4,37 +4,37 @@
   "model_kind": "patchcore",
   "model_variant": "patchcore_r18",
   "backbone": "resnet18",
-  "device": "mps",
+  "device": "cpu",
   "seed": 42,
   "batch_size": 32,
   "coreset_sampling_ratio": 0.005,
   "num_neighbors": 9,
   "input_size": 224,
-  "splits_dir": "/Users/danghyeonsong/HYUE/SWCapstone/splits",
-  "train_csv_path": "/Users/danghyeonsong/HYUE/SWCapstone/splits/v2_train_normal.csv",
-  "val_csv_path": "/Users/danghyeonsong/HYUE/SWCapstone/splits/v2_val_mix.csv",
-  "test_csv_path": "/Users/danghyeonsong/HYUE/SWCapstone/splits/v2_test_mix.csv",
-  "train_n_images": 10384,
-  "memory_bank_size": 40706,
+  "splits_dir": "/Users/danghyeonsong/HYUE/SWCapstone/splits_noleak",
+  "train_csv_path": "/Users/danghyeonsong/HYUE/SWCapstone/splits_noleak/v2_train_normal.csv",
+  "val_csv_path": "/Users/danghyeonsong/HYUE/SWCapstone/splits_noleak/v2_val_mix.csv",
+  "test_csv_path": "/Users/danghyeonsong/HYUE/SWCapstone/splits_noleak/v2_test_mix.csv",
+  "train_n_images": 10380,
+  "memory_bank_size": 40690,
   "metrics": {
     "val_mix": {
-      "auroc": 0.8144545823744416,
-      "auprc": 0.5452840257064685,
-      "f1": 0.5273311897106109,
-      "recall": 0.5927710843373494,
-      "precision": 0.4749034749034749,
-      "optimal_threshold": 4.0358781814575195
+      "auroc": 0.8355835927981589,
+      "auprc": 0.5683143377616068,
+      "f1": 0.5510835913312694,
+      "recall": 0.6433734939759036,
+      "precision": 0.48194945848375453,
+      "optimal_threshold": 4.029504776000977
     },
     "test_mix": {
-      "auroc": 0.8274613054714202,
-      "auprc": 0.7164746651110914,
-      "f1": 0.6497227356746765,
-      "recall": 0.7247422680412371,
-      "precision": 0.5887772194304858,
-      "optimal_threshold": 3.816035747528076
+      "auroc": 0.7963940640747076,
+      "auprc": 0.6747384764051494,
+      "f1": 0.6219673577415086,
+      "recall": 0.7268041237113402,
+      "precision": 0.543562066306862,
+      "optimal_threshold": 3.8141565322875977
     }
   },
-  "git_sha": "927ee7406da8e56b8a71a113e48cef057e064223",
-  "trained_at": "2026-05-07T07:58:40.774414Z",
+  "git_sha": "2bc49f5334dc0ae7a563563d9f2757f15c7d784c",
+  "trained_at": "2026-05-20T08:55:07.519900Z",
   "mlflow_used": false
 }

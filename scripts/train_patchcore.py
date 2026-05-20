@@ -95,6 +95,7 @@ SPLITS_DIR = PROJECT_ROOT / "splits"
 MODELS_DIR = PROJECT_ROOT / "models"
 REPORTS_DIR = PROJECT_ROOT / "reports" / "assets"
 DEFAULT_CONFIG = PROJECT_ROOT / "configs" / "default.yaml"
+RUN_HISTORY_PATH = PROJECT_ROOT / "reports" / "patchcore_run_history.jsonl"
 
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
@@ -129,6 +130,13 @@ def get_git_sha() -> str:
         return out.decode().strip()
     except Exception:
         return ""
+
+
+def append_run_history(payload: dict) -> None:
+    """Append one JSON record per training run for lightweight MLOps traceability."""
+    RUN_HISTORY_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with RUN_HISTORY_PATH.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(payload, ensure_ascii=True) + "\n")
 
 
 # ---------------------------------------------------------------------------
@@ -536,6 +544,31 @@ def main() -> None:
         }
         config_path.write_text(json.dumps(config_payload, indent=2))
         print(f"[PatchCore] Config written to {config_path}")
+        append_run_history(
+            {
+                "tag": tag,
+                "run_tag": run_tag,
+                "model_kind": "patchcore",
+                "model_variant": args.heatmap,
+                "config_path": str(config_path),
+                "model_path": str(model_path),
+                "trained_at": config_payload["trained_at"],
+                "git_sha": config_payload["git_sha"],
+                "device": device,
+                "seed": seed,
+                "batch_size": batch_size,
+                "coreset_sampling_ratio": coreset_ratio,
+                "num_neighbors": num_neighbors,
+                "splits_dir": str(splits_dir),
+                "train_csv_path": str(train_csv),
+                "val_csv_path": str(val_csv),
+                "test_csv_path": str(test_csv),
+                "train_n_images": len(train_ds),
+                "memory_bank_size": config_payload["memory_bank_size"],
+                "metrics": config_payload["metrics"],
+            }
+        )
+        print(f"[PatchCore] Run history appended to {RUN_HISTORY_PATH}")
 
         print("\n" + "=" * 60)
         print("SUMMARY")
