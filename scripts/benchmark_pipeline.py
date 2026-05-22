@@ -326,6 +326,7 @@ def run_version(
     gate_model_path: str,
     gate_calib_path: Optional[str],
     patchcore_model_path: str,
+    threshold_override: Optional[Dict[str, float]],
     args,
     transform,
 ) -> Dict[str, Any]:
@@ -379,15 +380,34 @@ def run_version(
 
     runs_baseline: List[Dict[str, Any]] = []
     runs_cascade: List[Dict[str, Any]] = []
+    t_low = args.t_low
+    t_high = args.t_high
+    patchcore_threshold = None
+    if threshold_override:
+        t_low = float(threshold_override.get("t_low", t_low))
+        t_high = float(threshold_override.get("t_high", t_high))
+        if "patchcore_threshold" in threshold_override:
+            patchcore_threshold = float(threshold_override["patchcore_threshold"])
+        logger.info(
+            "  threshold override: T_low=%.4f T_high=%.4f patchcore_threshold=%s",
+            t_low,
+            t_high,
+            f"{patchcore_threshold:.6f}" if patchcore_threshold is not None else "auto",
+        )
 
     for r in range(args.runs):
         logger.info("  run %d/%d", r + 1, args.runs)
-        b = evaluate_baseline(samples, patchcore, transform, args.device)
+        if args.skip_baseline:
+            b = None
+        else:
+            b = evaluate_baseline(samples, patchcore, transform, args.device)
         c = evaluate_cascade(
             samples, gate, patchcore, transform, args.device,
-            t_low=args.t_low, t_high=args.t_high,
+            t_low=t_low, t_high=t_high,
+            patchcore_threshold=patchcore_threshold,
         )
-        runs_baseline.append(b)
+        if b is not None:
+            runs_baseline.append(b)
         runs_cascade.append(c)
 
     def aggregate(runs: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -402,15 +422,17 @@ def run_version(
         "version": version_name,
         "n_samples": len(samples),
         "runs": args.runs,
-        "baseline": {
-            "per_run": runs_baseline,
-            "aggregate": aggregate(runs_baseline),
-        },
         "gate_cascade": {
             "per_run": runs_cascade,
             "aggregate": aggregate(runs_cascade),
         },
     }
+    if runs_baseline:
+        result["baseline"] = {
+            "per_run": runs_baseline,
+            "aggregate": aggregate(runs_baseline),
+        }
+    return result
 
 
 def write_markdown(results: List[Dict[str, Any]], out_md: Path) -> None:
@@ -424,6 +446,8 @@ def write_markdown(results: List[Dict[str, Any]], out_md: Path) -> None:
             lines.append(f"| {r['version']} | - | error | {r['error']} | | | | | | |")
             continue
         for kind in ("baseline", "gate_cascade"):
+            if kind not in r:
+                continue
             agg = r[kind]["aggregate"]
             acc = agg["accuracy"]; pr = agg["precision"]; rc = agg["recall"]; f1 = agg["f1"]
             lat = agg["latency_ms_mean_per_image"]
@@ -459,9 +483,11 @@ def main() -> int:
     p.add_argument("--t-high", type=float, default=0.7)
     p.add_argument("--device", default=None, help="cuda | mps | cpu (auto if omitted).")
     p.add_argument("--runs", type=int, default=3, help="Repeated runs to compute mean/std.")
+    p.add_argument("--skip-baseline", action="store_true", help="Evaluate only Gate-Cascade, skipping PatchCore-only baseline.")
     p.add_argument("--limit", type=int, default=0, help="Limit samples per version (0 = all).")
     p.add_argument("--shuffle", action="store_true", help="Shuffle CSV rows before applying --limit (recommended when CSV is class-grouped).")
     p.add_argument("--seed", type=int, default=42, help="Random seed for --shuffle.")
+    p.add_argument("--thresholds-json", default=None, help="Optional JSON file mapping version -> {t_low, t_high, patchcore_threshold}.")
     p.add_argument("--output", default="reports/benchmark_pipeline.json")
     args = p.parse_args()
 
@@ -473,6 +499,22 @@ def main() -> int:
         p.error(f"--gate-calib must have exactly {n} entries (or be omitted)")
 
     transform = get_eval_transform(224)
+    threshold_overrides: Dict[str, Dict[str, float]] = {}
+    if args.thresholds_json:
+        payload = json.loads(Path(args.thresholds_json).read_text())
+        if isinstance(payload, dict) and "results" in payload:
+            for row in payload["results"]:
+                version = row["version"]
+                if "selected_thresholds" in row:
+                    threshold_overrides[version] = row["selected_thresholds"]
+                elif "test_metrics" in row:
+                    threshold_overrides[version] = {
+                        key: row["test_metrics"][key]
+                        for key in ("t_low", "t_high", "patchcore_threshold")
+                        if key in row["test_metrics"]
+                    }
+        elif isinstance(payload, dict):
+            threshold_overrides = payload
 
     results: List[Dict[str, Any]] = []
     for i, version in enumerate(args.versions):
@@ -484,6 +526,7 @@ def main() -> int:
                 gate_model_path=args.gate_model[i],
                 gate_calib_path=gc,
                 patchcore_model_path=args.patchcore_model[i],
+                threshold_override=threshold_overrides.get(version),
                 args=args,
                 transform=transform,
             )
@@ -511,6 +554,8 @@ def main() -> int:
             print(f"[{r['version']}] ERROR: {r['error']}")
             continue
         for kind in ("baseline", "gate_cascade"):
+            if kind not in r:
+                continue
             a = r[kind]["aggregate"]
             print(
                 f"[{r['version']:<6}] {kind:<14}  "

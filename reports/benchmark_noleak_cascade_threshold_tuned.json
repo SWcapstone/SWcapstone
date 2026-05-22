@@ -1,0 +1,66 @@
+{
+  "summary": {
+    "description": "Threshold-tuned noleak cascade results. T_low/T_high were selected on val_gate and then fixed for test_gate evaluation. Latency was re-measured with the selected thresholds.",
+    "selection_rule": {
+      "dataset": "splits_noleak/v{1,2,3}_val_gate.csv",
+      "objective": "maximize F1 subject to min_recall=0.90 and max_call_rate=0.50",
+      "test_dataset": "splits_noleak/v{1,2,3}_test_gate.csv"
+    }
+  },
+  "results": [
+    {
+      "version": "v1",
+      "selected_thresholds": {
+        "t_low": 0.1,
+        "t_high": 0.5,
+        "patchcore_threshold": 0.0
+      },
+      "test_metrics": {
+        "accuracy": 0.995398773006135,
+        "precision": 0.9502762430939227,
+        "recall": 1.0,
+        "f1": 0.9745042492917847,
+        "heatmap_call_rate": 0.0005112474437627812,
+        "latency_ms_mean_per_image": 52.61392945448481,
+        "latency_ms_std_per_image_avg": 15.398653616439512,
+        "latency_ms_total": 102913.2476139723
+      }
+    },
+    {
+      "version": "v2",
+      "selected_thresholds": {
+        "t_low": 0.2,
+        "t_high": 0.65,
+        "patchcore_threshold": 3.270698308944702
+      },
+      "test_metrics": {
+        "accuracy": 0.9860940695296524,
+        "precision": 0.9738219895287958,
+        "recall": 0.8651162790697674,
+        "f1": 0.916256157635468,
+        "heatmap_call_rate": 0.005316973415132925,
+        "latency_ms_mean_per_image": 50.55434341474494,
+        "latency_ms_std_per_image_avg": 8.910745673070993,
+        "latency_ms_total": 123605.36864905139
+      }
+    },
+    {
+      "version": "v3",
+      "selected_thresholds": {
+        "t_low": 0.2,
+        "t_high": 0.6,
+        "patchcore_threshold": 3.181782183647156
+      },
+      "test_metrics": {
+        "accuracy": 0.9867075664621677,
+        "precision": 0.9581589958158996,
+        "recall": 0.8875968992248062,
+        "f1": 0.9215291750503019,
+        "heatmap_call_rate": 0.0027266530334014998,
+        "latency_ms_mean_per_image": 50.233438716097986,
+        "latency_ms_std_per_image_avg": 11.214310281265412,
+        "latency_ms_total": 147384.7099938304
+      }
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "name": "baseline_v1_mnv3s",
+  "gate": "mnv3_small",
+  "train_tag": "v1",
+  "description": "Current config (baseline reproduction)",
+  "pretrained": true,
+  "dropout": 0.3,
+  "lr": 0.001,
+  "weight_decay": 0.0001,
+  "label_smoothing": 0.0,
+  "mixup_alpha": 0.0,
+  "aug_strength": "normal",
+  "actual_epochs": 22,
+  "best_val_loss": 0.06125369212012987,
+  "test_acc": 0.9928131416837782,
+  "test_f1": 0.9590643274853801,
+  "test_auroc": 0.9975725135915704,
+  "test_precision": 0.9371428571428572,
+  "test_recall": 0.9820359281437125,
+  "cross_mean_f1": 0.9413486299581856,
+  "generalisation_gap": 0.017715697527194485,
+  "elapsed_sec": 1016.5727500915527,
+  "cross_detail": {
+    "v1_test_gate": {
+      "auroc": 0.9975725135915704,
+      "auprc": 0.9909519795238735,
+      "f1": 0.9590643274853801,
+      "recall": 0.9820359281437125,
+      "precision": 0.9371428571428572,
+      "accuracy": 0.9928131416837782
+    },
+    "v1_balanced_test": {
+      "auroc": 0.99995,
+      "auprc": 0.999950495049505,
+      "f1": 0.9925187032418953,
+      "recall": 0.995,
+      "precision": 0.9900497512437811,
+      "accuracy": 0.9925
+    },
+    "v2_test_gate": {
+      "auroc": 0.9978784869549516,
+      "auprc": 0.9861972075454188,
+      "f1": 0.9433962264150944,
+      "recall": 0.9569377990430622,
+      "precision": 0.9302325581395349,
+      "accuracy": 0.9901437371663244
+    },
+    "v2_balanced_test": {
+      "auroc": 0.9914000000000001,
+      "auprc": 0.9941993449857933,
+      "f1": 0.9796954314720813,
+      "recall": 0.965,
+      "precision": 0.9948453608247423,
+      "accuracy": 0.98
+    },
+    "v3_test_gate": {
+      "auroc": 0.9895589666791463,
+      "auprc": 0.9560271008344651,
+      "f1": 0.8089500860585198,
+      "recall": 0.94,
+      "precision": 0.7099697885196374,
+      "accuracy": 0.9619993153029784
+    },
+    "v3_balanced_test": {
+      "auroc": 0.9917,
+      "auprc": 0.9929601581809321,
+      "f1": 0.9644670050761421,
+      "recall": 0.95,
+      "precision": 0.979381443298969,
+      "accuracy": 0.965
+    }
+  }
+}
