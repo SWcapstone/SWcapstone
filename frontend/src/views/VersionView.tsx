@@ -75,67 +75,75 @@ export function VersionView({
   }
 
   return (
-    <div className="grid h-full min-h-0 grid-cols-[1.05fr_.95fr] gap-4">
-      <Card className="flex min-h-0 flex-col p-5">
-        <div className="mb-4 flex items-center justify-between gap-4">
-          <div className="text-xl font-black text-slate-950">데이터 버전</div>
-          <Badge tone="blue">{dashboard.dataset_versions.length} versions</Badge>
+    <div className="relative grid h-full min-h-0 grid-cols-[1.05fr_.95fr] gap-4">
+      {message ? (
+        <div className="pointer-events-none absolute right-4 top-4 z-30 w-[380px]">
+          <MessageBanner message={message} tone="blue" />
         </div>
+      ) : null}
 
-        {message ? <div className="mb-4"><MessageBanner message={message} tone="blue" /></div> : null}
+      <Card className="flex min-h-0 flex-col p-5">
+        <div className="mb-4 text-xl font-black text-slate-950">데이터 반영</div>
 
-        <div className="mb-4 rounded-2xl border-2 border-slate-200 bg-slate-50 p-4">
-          <div className="grid grid-cols-2 gap-3">
-            <label>
-              <div className="text-sm font-black text-slate-500">Target Dataset</div>
-              <select value={targetDatasetId} onChange={(event) => setTargetDatasetId(event.target.value)} className="mt-2 w-full rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-sm font-bold">
-                {dashboard.dataset_versions.map((dataset) => <option key={dataset.id} value={dataset.id}>{dataset.name} · {dataset.sample_count}</option>)}
-              </select>
-            </label>
-            <label>
-              <div className="text-sm font-black text-slate-500">New Dataset Name</div>
-              <input value={datasetName} onChange={(event) => setDatasetName(event.target.value)} className="mt-2 w-full rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-sm font-bold" placeholder="데이터셋 이름" />
-            </label>
+        <div className="mb-4 grid grid-cols-2 gap-4">
+          <div className="ui-panel-muted p-4">
+            <div className="mb-4 text-base font-black text-slate-950">데이터셋 수정 및 추가</div>
+            <div className="grid gap-4">
+              <label>
+                <div className="text-sm font-black text-slate-500">수정할 데이터셋</div>
+                <select value={targetDatasetId} onChange={(event) => setTargetDatasetId(event.target.value)} className="ui-control mt-2 w-full">
+                  {dashboard.dataset_versions.map((dataset) => <option key={dataset.id} value={dataset.id}>{dataset.name} · {dataset.sample_count}</option>)}
+                </select>
+              </label>
+              <label>
+                <div className="text-sm font-black text-slate-500">새 데이터셋 이름</div>
+                <input value={datasetName} onChange={(event) => setDatasetName(event.target.value)} className="ui-control mt-2 w-full" placeholder="새 이름 입력" />
+              </label>
+              <div className="grid grid-cols-2 gap-4">
+                <button onClick={() => handleFeedbackMaterialize("append")} disabled={busy || !dashboard.feedback_items.length} className="ui-button ui-button-neutral">
+                  기존 데이터셋에 반영
+                </button>
+                <button onClick={() => handleFeedbackMaterialize("new")} disabled={busy || !dashboard.feedback_items.length} className="ui-button ui-button-neutral">
+                  새 데이터셋으로 저장
+                </button>
+              </div>
+            </div>
           </div>
 
-          <div className="mt-3 grid grid-cols-2 gap-3">
-            <button onClick={() => handleFeedbackMaterialize("append")} disabled={busy || !dashboard.feedback_items.length} className="rounded-2xl border-2 border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-800 disabled:opacity-60">
-              피드백 추가
-            </button>
-            <button onClick={() => handleFeedbackMaterialize("new")} disabled={busy || !dashboard.feedback_items.length} className="rounded-2xl border-2 border-blue-600 bg-blue-600 px-4 py-3 text-sm font-bold text-white disabled:opacity-60">
-              피드백으로 새 데이터셋
-            </button>
+          <div className="ui-panel-muted p-4">
+            <div className="mb-4 text-base font-black text-slate-950">파일에서 새 데이터셋 불러오기</div>
+            <div className="grid gap-4">
+              <input type="file" multiple onChange={(event) => setUploadFiles(Array.from(event.target.files ?? []))} className="ui-control text-slate-700" />
+              <div className="grid grid-cols-2 gap-4">
+                <select value={uploadLabel} onChange={(event) => setUploadLabel(event.target.value)} className="ui-control">
+                  <option value="normal">normal</option>
+                  <option value="anomaly">anomaly</option>
+                  <option value="unlabeled">unlabeled</option>
+                </select>
+                <select value={datasetMode} onChange={(event) => setDatasetMode(event.target.value as "append" | "new")} className="ui-control">
+                  <option value="append">기존 데이터에 추가</option>
+                  <option value="new">새 데이터셋으로 저장</option>
+                </select>
+              </div>
+              <button onClick={handleUploadFiles} disabled={busy || !uploadFiles.length} className="ui-button ui-button-neutral">
+                데이터셋 불러오기
+              </button>
+            </div>
           </div>
-
-          <div className="mt-4 grid grid-cols-[1fr_.7fr_.7fr] gap-3">
-            <input type="file" multiple onChange={(event) => setUploadFiles(Array.from(event.target.files ?? []))} className="rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-sm text-slate-700" />
-            <select value={uploadLabel} onChange={(event) => setUploadLabel(event.target.value)} className="rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-sm font-bold">
-              <option value="normal">normal</option>
-              <option value="anomaly">anomaly</option>
-              <option value="unlabeled">unlabeled</option>
-            </select>
-            <select value={datasetMode} onChange={(event) => setDatasetMode(event.target.value as "append" | "new")} className="rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-sm font-bold">
-              <option value="append">기존에 추가</option>
-              <option value="new">새 데이터셋</option>
-            </select>
-          </div>
-          <button onClick={handleUploadFiles} disabled={busy || !uploadFiles.length} className="mt-3 w-full rounded-2xl border-2 border-slate-900 bg-slate-900 px-4 py-3 text-sm font-bold text-white disabled:opacity-60">
-            파일 반영
-          </button>
         </div>
 
         <div className="min-h-0 overflow-auto pr-1">
-          <div className="space-y-3">
+          <div className="space-y-4">
             {dashboard.dataset_versions.map((dataset) => (
-              <div key={dataset.id} className="rounded-2xl border-2 border-slate-200 p-4">
-                <div className="flex items-center justify-between gap-3">
+              <div key={dataset.id} className="ui-panel p-4">
+                <div className="flex items-center justify-between gap-4">
                   <div>
                     <div className="text-base font-black text-slate-900">{dataset.name}</div>
                     <div className="mt-1 text-sm font-semibold text-slate-500">{dataset.id}</div>
                   </div>
                   <Badge tone="blue">{dataset.status}</Badge>
                 </div>
-                <div className="mt-3 grid grid-cols-3 gap-3 text-sm font-semibold text-slate-700">
+                <div className="mt-4 grid grid-cols-3 gap-4 text-sm font-semibold text-slate-700">
                   <div>샘플 {dataset.sample_count}</div>
                   <div>피드백 {dataset.feedback_count}</div>
                   <div>원본 {dataset.source_dataset_id ?? "-"}</div>
@@ -149,23 +157,20 @@ export function VersionView({
       </Card>
 
       <Card className="flex min-h-0 flex-col p-5">
-        <div className="mb-4 flex items-center justify-between gap-4">
-          <div className="text-xl font-black text-slate-950">모델 버전</div>
-          <Badge tone="green">{dashboard.model_versions.length} models</Badge>
-        </div>
+        <div className="mb-4 text-xl font-black text-slate-950">모델 확인</div>
 
         <div className="min-h-0 overflow-auto pr-1">
-          <div className="space-y-3">
+          <div className="space-y-4">
             {dashboard.model_versions.map((model) => (
-              <div key={model.id} className="rounded-2xl border-2 border-slate-200 p-4">
-                <div className="flex items-center justify-between gap-3">
+              <div key={model.id} className="ui-panel p-4">
+                <div className="flex items-center justify-between gap-4">
                   <div>
                     <div className="text-base font-black text-slate-900">{model.id}</div>
                     <div className="mt-1 text-sm font-semibold text-slate-500">{model.name}</div>
                   </div>
                   <Badge tone={modelTone(model)}>{model.status}</Badge>
                 </div>
-                <div className="mt-3 grid grid-cols-2 gap-3 text-sm font-semibold text-slate-700">
+                <div className="mt-4 grid grid-cols-2 gap-4 text-sm font-semibold text-slate-700">
                   <div>Data {model.dataset_version_id ?? "-"}</div>
                   <div>Base {model.base_model_version_id ?? "-"}</div>
                   <div>Recipe {model.recipe_id ?? "-"}</div>

@@ -1,4 +1,4 @@
-import { Factory, FileText, Layers, MonitorCog, Rocket } from "lucide-react";
+import { Factory, Layers, MonitorCog, Rocket } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { AdminTab, Audience, LineId } from "./types";
 
@@ -13,7 +13,6 @@ export const adminTabs: Array<{ key: AdminTab; label: string; icon: LucideIcon }
   { key: "ops", label: "운영", icon: MonitorCog },
   { key: "train", label: "학습", icon: Rocket },
   { key: "version", label: "버전", icon: Layers },
-  { key: "logs", label: "로그", icon: FileText },
 ];
 
 export const baseLineStatus: Record<

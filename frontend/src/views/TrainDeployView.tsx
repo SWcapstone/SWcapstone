@@ -1,4 +1,3 @@
-import { Cpu, Database, Flame, Rocket } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   createTrainingRun,
@@ -13,15 +12,7 @@ import { LINES } from "../app/constants";
 import type { BusyAction, LineId } from "../app/types";
 import { cls, formatKoreaTimestamp, pickCanaryModel, pickProductionModel, pickStagingModel, recipeDraftFrom } from "../app/utils";
 import type { DashboardResponse, ModelVersion, TrainingRecipe } from "../types/mlops";
-import { Badge, Card, MessageBanner, Stat } from "../components/ui";
-
-function RequirementTag({ required }: { required: boolean }) {
-  return (
-    <span className={cls("rounded-full px-2 py-1 text-sm font-black", required ? "bg-blue-100 text-blue-700" : "bg-slate-200 text-slate-700")}>
-      {required ? "필수" : "선택"}
-    </span>
-  );
-}
+import { Badge, Card, MessageBanner } from "../components/ui";
 
 function DeploymentCard({
   title,
@@ -33,7 +24,7 @@ function DeploymentCard({
   subtitle: string;
 }) {
   return (
-    <div className="min-w-0 rounded-2xl border-2 border-slate-200 bg-slate-50 p-4">
+    <div className="ui-panel-muted min-w-0 p-4">
       <div className="text-sm font-black text-slate-500">{title}</div>
       <div className="mt-1 truncate text-base font-black text-slate-950">{model?.name ?? model?.id ?? "-"}</div>
       <div className="mt-1 text-sm font-semibold text-slate-600">{subtitle}</div>
@@ -171,17 +162,17 @@ export function TrainDeployView({
 
   async function handleStartCanary() {
     if (!selectedDeployModel) {
-      setMessage("Canary 모델을 선택하세요.");
+      setMessage("시험 모델을 선택하세요.");
       return;
     }
     try {
       setBusyAction("canary");
       setMessage("");
       await startCanary(selectedDeployModel.id, selectedCanaryLine);
-      setMessage(`${selectedCanaryLine}에서 Canary를 시작했습니다.`);
+      setMessage(`${selectedCanaryLine}에서 시험 라인을 시작했습니다.`);
       await onRefresh();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Canary 시작에 실패했습니다.");
+      setMessage(error instanceof Error ? error.message : "시험 라인 시작에 실패했습니다.");
     } finally {
       setBusyAction(null);
     }
@@ -217,126 +208,115 @@ export function TrainDeployView({
   }
 
   return (
-    <div className="grid h-full min-h-0 grid-rows-[auto_1fr] gap-4">
-      <div className="grid grid-cols-4 gap-4">
-        <Stat label="학습 실행" value={`${dashboard.training_runs.length}건`} sub="전체 이력" icon={Flame} tone="blue" />
-        <Stat label="배포 후보" value={`${dashboard.model_versions.filter((model) => model.status !== "production").length}건`} sub="staging / canary" icon={Rocket} tone="green" />
-        <Stat label="선택 데이터" value={dashboard.active_dataset_id} sub="현재 기준" icon={Database} tone="amber" />
-        <Stat label="Production" value={productionModel?.id ?? "-"} sub="운영 모델" icon={Cpu} />
-      </div>
-
-      <div className="grid min-h-0 grid-cols-[1.08fr_.92fr] gap-4">
+    <div className="grid h-full min-h-0 grid-cols-[1.05fr_.95fr] gap-4">
         <Card className="flex min-h-0 flex-col p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <div className="text-xl font-black text-slate-950">CPU 학습</div>
-            <Badge tone={runTone}>{latestRun?.current_step ?? "ready"}</Badge>
-          </div>
+          <div className="mb-4 text-xl font-black text-slate-950">학습 구성</div>
 
           {message ? <div className="mb-4"><MessageBanner message={message} tone="blue" /></div> : null}
 
-          <div className="min-h-0 overflow-auto pr-1">
-            <div className="grid grid-cols-4 gap-3">
-              <label className="rounded-2xl border-2 border-slate-200 bg-slate-50 p-4">
-                <div className="flex items-center justify-between gap-2 text-sm font-black text-slate-500">
-                  <span>Dataset</span><RequirementTag required />
-                </div>
-                <select value={selectedDatasetId} onChange={(event) => setSelectedDatasetId(event.target.value)} className="mt-2 w-full rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-sm font-bold">
-                  {dashboard.dataset_versions.map((dataset) => <option key={dataset.id} value={dataset.id}>{dataset.name} · {dataset.sample_count}</option>)}
-                </select>
-              </label>
-              <label className="rounded-2xl border-2 border-slate-200 bg-slate-50 p-4">
-                <div className="flex items-center justify-between gap-2 text-sm font-black text-slate-500">
-                  <span>Base Model</span><RequirementTag required />
-                </div>
-                <select value={selectedBaseModelId} onChange={(event) => setSelectedBaseModelId(event.target.value)} className="mt-2 w-full rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-sm font-bold">
-                  {dashboard.model_versions.map((model) => <option key={model.id} value={model.id}>{model.id} · {model.status}</option>)}
-                </select>
-              </label>
-              <label className="rounded-2xl border-2 border-slate-200 bg-slate-50 p-4">
-                <div className="flex items-center justify-between gap-2 text-sm font-black text-slate-500">
-                  <span>Model Name</span><RequirementTag required />
-                </div>
-                <input value={modelName} onChange={(event) => setModelName(event.target.value)} className="mt-2 w-full rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-sm font-bold" />
-              </label>
-              <label className="rounded-2xl border-2 border-slate-200 bg-slate-50 p-4">
-                <div className="flex items-center justify-between gap-2 text-sm font-black text-slate-500">
-                  <span>Epoch</span><RequirementTag required />
-                </div>
-                <input type="number" min={1} max={200} value={epochCount} onChange={(event) => setEpochCount(Math.max(1, Number(event.target.value)))} className="mt-2 w-full rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-sm font-bold" />
-              </label>
-            </div>
+          <div className="min-h-0 overflow-hidden">
+            <div className="space-y-4">
+              <div className="ui-panel-muted p-4">
+                <div className="mb-4 text-base font-black text-slate-950">기본 선택</div>
+                <div className="grid grid-cols-[1.08fr_.92fr] gap-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <label>
+                      <div className="text-sm font-black text-slate-500">데이터</div>
+                      <select value={selectedDatasetId} onChange={(event) => setSelectedDatasetId(event.target.value)} className="ui-control mt-1 w-full">
+                        {dashboard.dataset_versions.map((dataset) => <option key={dataset.id} value={dataset.id}>{dataset.name} · {dataset.sample_count}</option>)}
+                      </select>
+                    </label>
+                    <label>
+                      <div className="text-sm font-black text-slate-500">기준 모델</div>
+                      <select value={selectedBaseModelId} onChange={(event) => setSelectedBaseModelId(event.target.value)} className="ui-control mt-1 w-full">
+                        {dashboard.model_versions.map((model) => <option key={model.id} value={model.id}>{model.id} · {model.status}</option>)}
+                      </select>
+                    </label>
+                    <label>
+                      <div className="text-sm font-black text-slate-500">모델 이름</div>
+                      <input value={modelName} onChange={(event) => setModelName(event.target.value)} className="ui-control mt-1 w-full" />
+                    </label>
+                    <label>
+                      <div className="text-sm font-black text-slate-500">반복</div>
+                      <input type="number" min={1} max={200} value={epochCount} onChange={(event) => setEpochCount(Math.max(1, Number(event.target.value)))} className="ui-control mt-1 w-full" />
+                    </label>
+                  </div>
 
-            <div className="mt-4 grid grid-cols-[.9fr_1.1fr] gap-4">
-              <div className="max-h-72 overflow-auto rounded-2xl border-2 border-slate-200 bg-white p-3">
-                <div className="mb-2 text-base font-black text-slate-950">레시피</div>
-                <div className="space-y-2">
-                  {recipes.map((recipe) => (
-                    <button key={recipe.id} type="button" onClick={() => selectRecipe(recipe)} className={cls("w-full rounded-2xl border-2 p-3 text-left", recipe.id === selectedRecipeId ? "border-blue-600 bg-blue-50" : "border-slate-200")}>
-                      <div className="text-base font-black text-slate-950">{recipe.name}</div>
-                      <div className="mt-2 grid grid-cols-2 gap-1 text-sm font-semibold text-slate-600">
-                        <span>batch {recipe.batch_size}</span><span>lr {recipe.learning_rate}</span><span>{recipe.optimizer}</span><span>{recipe.scheduler}</span>
-                      </div>
+                  <div className="ui-panel p-4">
+                    <div className="mb-4 text-sm font-black text-slate-700">새로운 모델 불러오기</div>
+                    <div className="grid grid-cols-[.58fr_1fr] gap-3">
+                      <select value={architectureKind} onChange={(event) => setArchitectureKind(event.target.value as "gate" | "heatmap")} className="ui-control">
+                        <option value="gate">gate</option><option value="heatmap">heatmap</option>
+                      </select>
+                      <input value={architectureName} onChange={(event) => setArchitectureName(event.target.value)} className="ui-control" placeholder="Architecture name" />
+                    </div>
+                    <div className="mt-3 grid grid-cols-[1fr_88px] gap-3">
+                      <input type="file" accept=".json,.yaml,.yml,.txt,.py" onChange={(event) => setArchitectureFile(event.target.files?.[0] ?? null)} className="ui-control min-w-0" />
+                      <button onClick={handleUploadArchitecture} disabled={busyAction !== null || !architectureFile || !architectureName.trim()} className="ui-button ui-button-primary">
+                        등록
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="ui-panel p-4">
+                <div className="mb-4 text-base font-black text-slate-950">레시피 선택 및 수정</div>
+                <div className="grid grid-cols-[.9fr_1.1fr] gap-4">
+                  <div className="ui-panel max-h-48 overflow-auto p-2">
+                    <div className="space-y-3">
+                      {recipes.map((recipe) => (
+                        <button key={recipe.id} type="button" onClick={() => selectRecipe(recipe)} className={cls("w-full rounded-[10px] border p-2 text-left", recipe.id === selectedRecipeId ? "border-blue-600 bg-blue-50" : "border-[#d8dee6] bg-white")}>
+                          <div className="text-sm font-black text-slate-950">{recipe.name}</div>
+                          <div className="mt-1 grid grid-cols-2 gap-1 text-xs font-semibold text-slate-600">
+                            <span>batch {recipe.batch_size}</span><span>lr {recipe.learning_rate}</span><span>{recipe.optimizer}</span><span>{recipe.scheduler}</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="ui-panel-muted p-4">
+                    <div className="grid grid-cols-3 gap-3">
+                      <input className="ui-control" value={recipeDraft.name} onChange={(event) => setRecipeDraft({ ...recipeDraft, name: event.target.value })} placeholder="name" />
+                      <select className="ui-control" value={recipeDraft.optimizer} onChange={(event) => setRecipeDraft({ ...recipeDraft, optimizer: event.target.value })}>
+                        {["AdamW", "Adam", "SGD"].map((optimizer) => <option key={optimizer}>{optimizer}</option>)}
+                      </select>
+                      <input className="ui-control" type="number" min={1} value={recipeDraft.batch_size} onChange={(event) => setRecipeDraft({ ...recipeDraft, batch_size: Number(event.target.value) })} placeholder="batch" />
+                      <input className="ui-control" type="number" step="0.0001" value={recipeDraft.learning_rate} onChange={(event) => setRecipeDraft({ ...recipeDraft, learning_rate: Number(event.target.value) })} placeholder="lr" />
+                      <input className="ui-control" type="number" step="0.001" value={recipeDraft.weight_decay} onChange={(event) => setRecipeDraft({ ...recipeDraft, weight_decay: Number(event.target.value) })} placeholder="weight decay" />
+                      <select className="ui-control" value={recipeDraft.scheduler} onChange={(event) => setRecipeDraft({ ...recipeDraft, scheduler: event.target.value })}>
+                        {["cosine", "step", "none"].map((scheduler) => <option key={scheduler}>{scheduler}</option>)}
+                      </select>
+                    </div>
+                    <button onClick={handleSaveRecipe} disabled={busyAction !== null} className="ui-button ui-button-dark mt-3 w-full py-2">
+                      레시피 저장
                     </button>
-                  ))}
+                  </div>
                 </div>
               </div>
 
-              <div className="rounded-2xl border-2 border-slate-200 bg-slate-50 p-4">
-                <div className="flex items-center justify-between gap-2 text-base font-black text-slate-950">
-                  <span>레시피 수정</span><RequirementTag required={false} />
-                </div>
-                <div className="mt-3 grid grid-cols-2 gap-3">
-                  <input className="rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold" value={recipeDraft.name} onChange={(event) => setRecipeDraft({ ...recipeDraft, name: event.target.value })} placeholder="name" />
-                  <select className="rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold" value={recipeDraft.optimizer} onChange={(event) => setRecipeDraft({ ...recipeDraft, optimizer: event.target.value })}>
-                    {["AdamW", "Adam", "SGD"].map((optimizer) => <option key={optimizer}>{optimizer}</option>)}
-                  </select>
-                  <input className="rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold" type="number" min={1} value={recipeDraft.batch_size} onChange={(event) => setRecipeDraft({ ...recipeDraft, batch_size: Number(event.target.value) })} placeholder="batch" />
-                  <input className="rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold" type="number" step="0.0001" value={recipeDraft.learning_rate} onChange={(event) => setRecipeDraft({ ...recipeDraft, learning_rate: Number(event.target.value) })} placeholder="lr" />
-                  <input className="rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold" type="number" step="0.001" value={recipeDraft.weight_decay} onChange={(event) => setRecipeDraft({ ...recipeDraft, weight_decay: Number(event.target.value) })} placeholder="weight decay" />
-                  <select className="rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold" value={recipeDraft.scheduler} onChange={(event) => setRecipeDraft({ ...recipeDraft, scheduler: event.target.value })}>
-                    {["cosine", "step", "none"].map((scheduler) => <option key={scheduler}>{scheduler}</option>)}
-                  </select>
-                </div>
-                <button onClick={handleSaveRecipe} disabled={busyAction !== null} className="mt-3 w-full rounded-2xl border-2 border-slate-900 bg-slate-900 px-4 py-3 text-sm font-bold text-white disabled:opacity-60">
-                  레시피 저장
-                </button>
-              </div>
-            </div>
-
-            <div className="mt-4 rounded-2xl border-2 border-slate-200 bg-white p-4">
-              <div className="mb-3 flex items-center justify-between gap-4">
+            <div className="ui-panel p-4">
+              <div className="mb-4 flex items-center justify-between gap-4">
                 <div className="text-base font-black text-slate-950">학습 상태</div>
                 <Badge tone={runTone}>{latestRun?.status ?? "not-created"}</Badge>
               </div>
-              <div className="h-3 overflow-hidden rounded-full bg-slate-200">
+              <div className="h-2.5 overflow-hidden rounded-full bg-slate-200">
                 <div className="h-full rounded-full bg-blue-600 transition-all" style={{ width: `${runProgress}%` }} />
               </div>
-              <div className="mt-2 flex justify-between text-sm font-bold text-slate-600">
+              <div className="mt-3 flex justify-between text-sm font-bold text-slate-600">
                 <span>{runProgress}%</span><span>{latestRun?.device ?? "cpu"}</span><span>{latestRun?.name ?? selectedRecipe?.name ?? "-"}</span>
               </div>
             </div>
 
-            <div className="mt-4 rounded-2xl border-2 border-slate-200 bg-white p-4">
-              <div className="mb-3 text-base font-black text-slate-950">아키텍처 등록</div>
-              <div className="grid grid-cols-[.6fr_1fr_1fr] gap-3">
-                <select value={architectureKind} onChange={(event) => setArchitectureKind(event.target.value as "gate" | "heatmap")} className="rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-sm font-bold">
-                  <option value="gate">gate</option><option value="heatmap">heatmap</option>
-                </select>
-                <input value={architectureName} onChange={(event) => setArchitectureName(event.target.value)} className="rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-bold" placeholder="Architecture name" />
-                <input type="file" accept=".json,.yaml,.yml,.txt,.py" onChange={(event) => setArchitectureFile(event.target.files?.[0] ?? null)} className="rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-sm" />
-              </div>
-              <button onClick={handleUploadArchitecture} disabled={busyAction !== null || !architectureFile || !architectureName.trim()} className="mt-3 w-full rounded-2xl border-2 border-blue-600 bg-blue-600 px-4 py-3 text-sm font-bold text-white disabled:opacity-60">
-                아키텍처 등록
-              </button>
-            </div>
-
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <button onClick={handleStartTraining} disabled={busyAction !== null || Boolean(activeRun)} className="rounded-2xl border-2 border-blue-600 bg-blue-600 px-4 py-3 text-sm font-bold text-white disabled:opacity-60">
+            <div className="grid grid-cols-2 gap-4">
+              <button onClick={handleStartTraining} disabled={busyAction !== null || Boolean(activeRun)} className="ui-button ui-button-primary py-2.5">
                 {busyAction === "train" ? "학습 시작 중" : "학습 시작"}
               </button>
-              <button onClick={handleStopTraining} disabled={busyAction !== null || !activeRun} className="rounded-2xl border-2 border-rose-600 bg-rose-600 px-4 py-3 text-sm font-bold text-white disabled:opacity-60">
+              <button onClick={handleStopTraining} disabled={busyAction !== null || !activeRun} className="ui-button ui-button-danger py-2.5">
                 {busyAction === "stop" ? "중지 요청 중" : "학습 중지"}
               </button>
+            </div>
             </div>
           </div>
         </Card>
@@ -344,46 +324,45 @@ export function TrainDeployView({
         <Card className="flex min-h-0 flex-col p-5">
           <div className="mb-4 text-xl font-black text-slate-950">배포</div>
           <div className="min-h-0 overflow-auto pr-1">
-            <div className="grid gap-3 rounded-2xl border-2 border-slate-200 bg-slate-50 p-4">
+            <div className="ui-panel-muted grid gap-4 p-4">
               <label>
                 <div className="flex items-center justify-between gap-2 text-sm font-black text-slate-500">
-                  <span>Model Candidate</span><RequirementTag required />
+                  <span>배포 모델</span>
                 </div>
-                <select value={selectedDeployModelId} onChange={(event) => setSelectedDeployModelId(event.target.value)} className="mt-2 w-full rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-sm font-bold">
+                <select value={selectedDeployModelId} onChange={(event) => setSelectedDeployModelId(event.target.value)} className="ui-control mt-2 w-full">
                   {dashboard.model_versions.map((model) => <option key={model.id} value={model.id}>{model.name ?? model.id} · {model.status}</option>)}
                 </select>
               </label>
               <label>
                 <div className="flex items-center justify-between gap-2 text-sm font-black text-slate-500">
-                  <span>Canary Line</span><RequirementTag required={false} />
+                  <span>시험 라인</span>
                 </div>
-                <select value={selectedCanaryLine} onChange={(event) => setSelectedCanaryLine(event.target.value as LineId)} className="mt-2 w-full rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-sm font-bold">
+                <select value={selectedCanaryLine} onChange={(event) => setSelectedCanaryLine(event.target.value as LineId)} className="ui-control mt-2 w-full">
                   {LINES.map((line) => <option key={line}>{line}</option>)}
                 </select>
               </label>
             </div>
 
-            <div className="mt-4 grid gap-3">
-              <div className="grid grid-cols-3 gap-3">
+            <div className="mt-4 grid gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <DeploymentCard title="Production" model={productionModel} subtitle="운영 중" />
                 <DeploymentCard title="Staging" model={stagingModel} subtitle="검증 대기" />
-                <DeploymentCard title="Canary" model={canaryModel} subtitle={dashboard.deployment.canary_line ? `${dashboard.deployment.canary_line} 검증 중` : "없음"} />
+                <DeploymentCard title="시험" model={canaryModel} subtitle={dashboard.deployment.canary_line ? `${dashboard.deployment.canary_line} 검증 중` : "없음"} />
               </div>
-              <div className="grid grid-cols-3 gap-3">
-                <button onClick={handleStartCanary} disabled={busyAction !== null} className="rounded-2xl border-2 border-slate-200 px-4 py-3 text-sm font-bold text-slate-800 disabled:opacity-60">
-                  {busyAction === "canary" ? "시작 중" : "Canary 시작"}
+              <div className="grid grid-cols-3 gap-4">
+                <button onClick={handleStartCanary} disabled={busyAction !== null} className="ui-button ui-button-neutral">
+                  {busyAction === "canary" ? "시작 중" : "시험 라인 시작"}
                 </button>
-                <button onClick={handleApprove} disabled={busyAction !== null} className="rounded-2xl border-2 border-blue-600 bg-blue-600 px-4 py-3 text-sm font-bold text-white disabled:opacity-60">
+                <button onClick={handleApprove} disabled={busyAction !== null} className="ui-button ui-button-primary">
                   {busyAction === "approve" ? "승인 중" : "배포 승인"}
                 </button>
-                <button onClick={handleRollback} disabled={busyAction !== null} className="rounded-2xl border-2 border-rose-600 bg-rose-600 px-4 py-3 text-sm font-bold text-white disabled:opacity-60">
+                <button onClick={handleRollback} disabled={busyAction !== null} className="ui-button ui-button-danger">
                   {busyAction === "rollback" ? "롤백 중" : "롤백"}
                 </button>
               </div>
             </div>
           </div>
         </Card>
-      </div>
     </div>
   );
 }
