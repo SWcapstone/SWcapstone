@@ -5,335 +5,175 @@
       "id": "DATA-V3-PRODUCTION",
       "name": "Round 3 Pool",
       "status": "locked",
-      "sample_count": 14857,
-      "feedback_count": 4,
+      "sample_count": 14850,
+      "feedback_count": 0,
       "samples": [],
-      "updated_at": "2026-04-15T04:50:56"
+      "updated_at": "2026-05-22T04:45:18"
     }
   ],
   "model_versions": [
     {
-      "id": "MODEL-RUN-0C58",
-      "name": "New ARCH-GATE-EFF",
-      "status": "production",
-      "metrics": {
-        "loss": 0.5,
-        "acc": 0.9
-      },
-      "lineage": "Retrained"
-    },
-    {
-      "id": "MODEL-RUN-AB81",
-      "name": "New ARCH-GATE-EFF",
+      "id": "FILE-25FD-PATCHCORE",
+      "name": "Found: round3_patchcore_r18_patchcore.pt",
       "status": "candidate",
       "metrics": {
-        "loss": 0.25,
-        "acc": 0.9
+        "f1": "N/A (Discovered)"
       },
-      "lineage": "Retrained"
+      "lineage": "Auto-discovered from Storage",
+      "filename": "round3_patchcore_r18_patchcore.pt",
+      "kind": "heatmap",
+      "updated_at": "2026-05-22T05:36:27"
     },
     {
-      "id": "MODEL-RUN-155D",
-      "name": "New ARCH-GATE-EFF",
+      "id": "FILE-D668-GATE",
+      "name": "Found: round3_effnetb0_gate.pt",
       "status": "candidate",
       "metrics": {
-        "loss": 0.05,
-        "acc": 0.9
+        "f1": "N/A (Discovered)"
       },
-      "lineage": "Retrained"
+      "lineage": "Auto-discovered from Storage",
+      "filename": "round3_effnetb0_gate.pt",
+      "kind": "gate",
+      "updated_at": "2026-05-22T05:36:27"
+    },
+    {
+      "id": "FILE-E9BA-PATCHCORE",
+      "name": "Found: round2_patchcore_r18_patchcore.pt",
+      "status": "candidate",
+      "metrics": {
+        "f1": "N/A (Discovered)"
+      },
+      "lineage": "Auto-discovered from Storage",
+      "filename": "round2_patchcore_r18_patchcore.pt",
+      "kind": "heatmap",
+      "updated_at": "2026-05-22T05:36:27"
+    },
+    {
+      "id": "FILE-B6FA-GATE",
+      "name": "Found: round2_effnetb0_gate.pt",
+      "status": "candidate",
+      "metrics": {
+        "f1": "N/A (Discovered)"
+      },
+      "lineage": "Auto-discovered from Storage",
+      "filename": "round2_effnetb0_gate.pt",
+      "kind": "gate",
+      "updated_at": "2026-05-22T05:36:27"
+    },
+    {
+      "id": "FILE-B78F-PATCHCORE",
+      "name": "Found: round1_patchcore_r18_patchcore.pt",
+      "status": "candidate",
+      "metrics": {
+        "f1": "N/A (Discovered)"
+      },
+      "lineage": "Auto-discovered from Storage",
+      "filename": "round1_patchcore_r18_patchcore.pt",
+      "kind": "heatmap",
+      "updated_at": "2026-05-22T05:36:27"
+    },
+    {
+      "id": "FILE-1B71-GATE",
+      "name": "Found: round1_mnv3_large_gate.pt",
+      "status": "candidate",
+      "metrics": {
+        "f1": "N/A (Discovered)"
+      },
+      "lineage": "Auto-discovered from Storage",
+      "filename": "round1_mnv3_large_gate.pt",
+      "kind": "gate",
+      "updated_at": "2026-05-22T05:36:27"
+    },
+    {
+      "id": "FILE-97C6-GATE",
+      "name": "Found: round1_effnetb0_gate.pt",
+      "status": "candidate",
+      "metrics": {
+        "f1": "N/A (Discovered)"
+      },
+      "lineage": "Auto-discovered from Storage",
+      "filename": "round1_effnetb0_gate.pt",
+      "kind": "gate",
+      "updated_at": "2026-05-22T05:36:27"
+    },
+    {
+      "id": "FILE-3288-102727",
+      "name": "Found: retrained_efficientnet_b0_20260508_102727.pt",
+      "status": "candidate",
+      "metrics": {
+        "f1": "N/A (Discovered)"
+      },
+      "lineage": "Auto-discovered from Storage",
+      "filename": "retrained_efficientnet_b0_20260508_102727.pt",
+      "kind": "gate",
+      "updated_at": "2026-05-22T05:36:27"
+    },
+    {
+      "id": "FILE-4586-090850",
+      "name": "Found: retrained_efficientnet_b0_20260508_090850.pt",
+      "status": "candidate",
+      "metrics": {
+        "f1": "N/A (Discovered)"
+      },
+      "lineage": "Auto-discovered from Storage",
+      "filename": "retrained_efficientnet_b0_20260508_090850.pt",
+      "kind": "gate",
+      "updated_at": "2026-05-22T05:36:27"
+    },
+    {
+      "id": "FILE-F7E9-MODEL",
+      "name": "Found: heatmap_model.pt",
+      "status": "candidate",
+      "metrics": {
+        "f1": "N/A (Discovered)"
+      },
+      "lineage": "Auto-discovered from Storage",
+      "filename": "heatmap_model.pt",
+      "kind": "heatmap",
+      "updated_at": "2026-05-22T05:36:27"
+    },
+    {
+      "id": "FILE-33C8-MODEL",
+      "name": "Found: gate_model.pt",
+      "status": "candidate",
+      "metrics": {
+        "f1": "N/A (Discovered)"
+      },
+      "lineage": "Auto-discovered from Storage",
+      "filename": "gate_model.pt",
+      "kind": "gate",
+      "updated_at": "2026-05-22T05:36:27"
     },
     {
       "id": "MODEL-R3-FINAL",
-      "status": "candidate",
+      "name": "EffNet-B0 (R3)",
+      "status": "production",
       "metrics": {
         "f1": 0.94
       },
       "lineage": "Round 3 Cascade"
     }
   ],
-  "training_runs": [
-    {
-      "id": "MODEL-RUN-0C58",
-      "architecture": "ARCH-GATE-EFF",
-      "params": {
-        "architecture": "ARCH-GATE-EFF",
-        "epochs": 1,
-        "batch_size": 8,
-        "learning_rate": 0.001,
-        "optimizer": "Adam",
-        "augmentation": true
-      },
-      "final_metrics": {
-        "loss": 0.5,
-        "acc": 0.9
-      },
-      "completed_at": "2026-05-17T09:28:08"
-    },
-    {
-      "id": "MODEL-RUN-AB81",
-      "architecture": "ARCH-GATE-EFF",
-      "params": {
-        "architecture": "ARCH-GATE-EFF",
-        "epochs": 2,
-        "batch_size": 32,
-        "learning_rate": 0.001,
-        "optimizer": "Adam",
-        "augmentation": true
-      },
-      "final_metrics": {
-        "loss": 0.25,
-        "acc": 0.9
-      },
-      "completed_at": "2026-05-09T00:32:29"
-    },
-    {
-      "id": "MODEL-RUN-155D",
-      "architecture": "ARCH-GATE-EFF",
-      "params": {
-        "architecture": "ARCH-GATE-EFF",
-        "epochs": 10,
-        "batch_size": 32,
-        "learning_rate": 0.001,
-        "optimizer": "Adam",
-        "augmentation": true
-      },
-      "final_metrics": {
-        "loss": 0.05,
-        "acc": 0.9
-      },
-      "completed_at": "2026-05-08T23:51:29"
-    }
-  ],
-  "feedback_items": [
-    {
-      "id": "FDBK-7F6499F0",
-      "feedback_type": "needs_review",
-      "label": "unlabeled",
-      "operator": "operator-01",
-      "comment": "검토 보류",
-      "line": "LINE-A",
-      "image_url": "/mlops-assets/feedback/3ae3bab588504c7e991e732938427df4.bmp",
-      "created_at": "2026-05-17T09:27:49",
-      "model_prediction": {
-        "gate_score": 0.9999969005584717,
-        "heatmap_score": 4.143934726715088,
-        "predicted_label": "anomaly"
-      }
-    },
-    {
-      "id": "FDBK-4DBC0342",
-      "feedback_type": "needs_review",
-      "label": "unlabeled",
-      "operator": "operator-01",
-      "comment": "판정 보류",
-      "line": "LINE-A",
-      "image_url": "/mlops-assets/feedback/038aee4ae71540e3bb6ad1f362ac5471.bmp",
-      "created_at": "2026-05-09T01:53:57",
-      "model_prediction": {
-        "gate_score": 0.9999998807907104,
-        "heatmap_score": 4.805501937866211,
-        "predicted_label": "anomaly"
-      }
-    },
-    {
-      "id": "FDBK-AD666CD8",
-      "feedback_type": "needs_review",
-      "label": "unlabeled",
-      "operator": "operator-01",
-      "comment": "판정 보류",
-      "line": "LINE-A",
-      "image_url": "/mlops-assets/feedback/2921d1be53534129aec6dacd626c1a73.bmp",
-      "created_at": "2026-05-09T00:31:59",
-      "model_prediction": {
-        "gate_score": 0.9999998807907104,
-        "heatmap_score": 4.805501937866211,
-        "predicted_label": "anomaly"
-      }
-    },
-    {
-      "id": "FDBK-DBE77B87",
-      "feedback_type": "needs_review",
-      "label": "unlabeled",
-      "operator": "operator-01",
-      "comment": "판정 보류",
-      "line": "LINE-A",
-      "image_url": "/mlops-assets/feedback/813d65b2b9d34bf8809a0ccaabfa02b8.bmp",
-      "created_at": "2026-05-08T23:50:17",
-      "model_prediction": {
-        "gate_score": 0.9999982118606567,
-        "heatmap_score": 4.346529960632324,
-        "predicted_label": "anomaly"
-      }
-    }
-  ],
+  "training_runs": [],
+  "feedback_items": [],
   "logs": [
     {
-      "id": "4C216966",
-      "time": "2026-05-17T09:28:42",
-      "level": "info",
-      "message": "Bulk upload: 4 files"
-    },
-    {
-      "id": "76A52D85",
-      "time": "2026-05-17T09:28:33",
-      "level": "warning",
-      "message": "Deployment Success: MODEL-RUN-0C58 (File: )"
-    },
-    {
-      "id": "FE9B3051",
-      "time": "2026-05-17T09:28:08",
-      "level": "success",
-      "message": "Training Completed: MODEL-RUN-0C58"
-    },
-    {
-      "id": "449A0DF7",
-      "time": "2026-05-17T09:28:07",
-      "level": "info",
-      "message": "Training Started: ARCH-GATE-EFF"
-    },
-    {
-      "id": "276C35D0",
-      "time": "2026-05-17T09:27:49",
-      "level": "info",
-      "message": "Data Ingested: needs_review (Actual: unlabeled)"
-    },
-    {
-      "id": "6ADC9EB1",
-      "time": "2026-05-09T01:53:57",
-      "level": "info",
-      "message": "Data Ingested: needs_review (Actual: unlabeled)"
-    },
-    {
-      "id": "DDF92009",
-      "time": "2026-05-09T00:33:08",
-      "level": "info",
-      "message": "Bulk upload: 2 files"
-    },
-    {
-      "id": "B817C2C7",
-      "time": "2026-05-09T00:32:40",
-      "level": "warning",
-      "message": "Deployment Success: MODEL-RUN-AB81 (File: )"
-    },
-    {
-      "id": "D64852E6",
-      "time": "2026-05-09T00:32:29",
-      "level": "success",
-      "message": "Training Completed: MODEL-RUN-AB81"
-    },
-    {
-      "id": "D5C915E6",
-      "time": "2026-05-09T00:32:27",
-      "level": "info",
-      "message": "Training Started: ARCH-GATE-EFF"
-    },
-    {
-      "id": "866A3B47",
-      "time": "2026-05-09T00:31:59",
-      "level": "info",
-      "message": "Data Ingested: needs_review (Actual: unlabeled)"
-    },
-    {
-      "id": "813865EA",
-      "time": "2026-05-08T23:54:46",
-      "level": "warning",
-      "message": "Deployment Success: MODEL-RUN-155D (File: )"
-    },
-    {
-      "id": "7A77184B",
-      "time": "2026-05-08T23:54:14",
+      "id": "457E98E5",
+      "time": "2026-05-22T05:40:45",
       "level": "warning",
       "message": "Deployment Success: MODEL-R3-FINAL (File: )"
     },
     {
-      "id": "ADE7C301",
-      "time": "2026-05-08T23:52:07",
+      "id": "A9EB7467",
+      "time": "2026-05-22T05:38:28",
       "level": "warning",
-      "message": "Deployment Success: MODEL-RUN-155D (File: )"
+      "message": "Deployment Success: MODEL-R3-FINAL (File: )"
     },
     {
-      "id": "EFC8D5DC",
-      "time": "2026-05-08T23:51:29",
-      "level": "success",
-      "message": "Training Completed: MODEL-RUN-155D"
-    },
-    {
-      "id": "ECB49882",
-      "time": "2026-05-08T23:51:19",
-      "level": "info",
-      "message": "Training Started: ARCH-GATE-EFF"
-    },
-    {
-      "id": "124BDDA6",
-      "time": "2026-05-08T23:50:38",
-      "level": "info",
-      "message": "Bulk upload: 1 files"
-    },
-    {
-      "id": "0E7A610F",
-      "time": "2026-05-08T23:50:17",
-      "level": "info",
-      "message": "Data Ingested: needs_review (Actual: unlabeled)"
-    },
-    {
-      "id": "D6828120",
-      "time": "2026-04-24T08:01:05",
+      "id": "2320EFC3",
+      "time": "2026-05-22T05:37:45",
       "level": "warning",
-      "message": "Data Removed: FDBK-849CF361"
-    },
-    {
-      "id": "2EB3F8AB",
-      "time": "2026-04-24T08:01:03",
-      "level": "warning",
-      "message": "Data Removed: FDBK-2FBC29B4"
-    },
-    {
-      "id": "91E5C21D",
-      "time": "2026-04-24T08:01:01",
-      "level": "warning",
-      "message": "Data Removed: FDBK-6A00CD7F"
-    },
-    {
-      "id": "4CD95D3B",
-      "time": "2026-04-24T08:00:50",
-      "level": "info",
-      "message": "Data Ingested: confirmed_anomaly (Actual: anomaly)"
-    },
-    {
-      "id": "914FE251",
-      "time": "2026-04-24T08:00:49",
-      "level": "info",
-      "message": "Data Ingested: false_negative (Actual: anomaly)"
-    },
-    {
-      "id": "BFF9C757",
-      "time": "2026-04-24T08:00:47",
-      "level": "info",
-      "message": "Data Ingested: false_positive (Actual: normal)"
-    },
-    {
-      "id": "76BA597B",
-      "time": "2026-04-24T07:39:45",
-      "level": "warning",
-      "message": "Data Removed: FDBK-A3145171"
-    },
-    {
-      "id": "EECD7BD4",
-      "time": "2026-04-24T07:39:40",
-      "level": "info",
-      "message": "Data Ingested: false_positive (Actual: normal)"
-    },
-    {
-      "id": "22CE1F85",
-      "time": "2026-04-15T04:52:17",
-      "level": "warning",
-      "message": "Data Removed: FDBK-E2D8E786"
-    },
-    {
-      "id": "B6228BA5",
-      "time": "2026-04-15T04:52:03",
-      "level": "info",
-      "message": "Data Ingested: confirmed_anomaly (26361a4890a84f579816797f0b19dd2e.png)"
+      "message": "Deployment Success: FILE-B78F-PATCHCORE (File: )"
     }
   ],
   "architectures": [
@@ -347,5 +187,40 @@
       "name": "PatchCore-R18",
       "kind": "heatmap"
     }
+  ],
+  "deployment": {
+    "production_model_id": "BOOTSTRAP",
+    "staging_model_id": null,
+    "canary_model_id": null,
+    "canary_line": null
+  },
+  "runtime_config": {
+    "ensemble_enabled": true,
+    "current_model_id": "BOOTSTRAP",
+    "gate_file": "gate_model.pt",
+    "heatmap_file": "round1_patchcore_r18_patchcore.pt"
+  },
+  "training_recipes": [
+    {
+      "id": "recipe-balanced-v3",
+      "name": "Balanced Industrial Recipe",
+      "default_epochs": 10,
+      "batch_size": 32,
+      "learning_rate": 0.001,
+      "optimizer": "Adam"
+    }
+  ],
+  "available_model_files": [
+    "gate_model.pt",
+    "heatmap_model.pt",
+    "retrained_efficientnet_b0_20260508_090850.pt",
+    "retrained_efficientnet_b0_20260508_102727.pt",
+    "round1_effnetb0_gate.pt",
+    "round1_mnv3_large_gate.pt",
+    "round1_patchcore_r18_patchcore.pt",
+    "round2_effnetb0_gate.pt",
+    "round2_patchcore_r18_patchcore.pt",
+    "round3_effnetb0_gate.pt",
+    "round3_patchcore_r18_patchcore.pt"
   ]
 }

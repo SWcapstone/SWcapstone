@@ -805,33 +805,6 @@ class GateModel:
 
         logger.info("Gate model loaded from %s (backbone=%s)", path, backbone_name)
         return instance
-        '''
-        path = Path(path)
-        dev = _resolve_device(device)
-        payload = torch.load(path, map_location=dev, weights_only=False)
-
-        backbone_name = payload.get("backbone_name", "efficientnet_b0")
-        instance = cls(backbone=backbone_name, pretrained=False, device=str(dev))
-        #수정전
-        #instance.model.load_state_dict(payload["model_state_dict"])
-        # 수정 후
-        state_dict = payload["model_state_dict"]
-        # strict=False 옵션을 주면 미세한 레이어 이름 차이는 무시하고 값만 주입합니다.
-        instance.model.load_state_dict(state_dict, strict=False)
-        instance.threshold = payload.get("threshold", 0.5)
-        instance.training_history = payload.get("training_history", [])
-
-        if "calibrator_bytes" in payload:
-            import pickle
-
-            instance.calibrator = pickle.loads(payload["calibrator_bytes"])
-            logger.info(
-                "Loaded calibrator: %s", payload.get("calibrator_type", "unknown")
-            )
-
-        logger.info("Gate model loaded from %s (backbone=%s)", path, backbone_name)
-        return instance
-        '''
 
     # -----------------------------------------------------------------------
     # Convenience / repr

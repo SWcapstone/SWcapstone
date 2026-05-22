@@ -10,10 +10,3 @@ def get_device():
         return torch.device("mps")
     else:
         return torch.device("cpu")
-
-def to_device(obj):
-    """
-    Moves a tensor or model to the best available device.
-    """
-    device = get_device()
-    return obj.to(device)

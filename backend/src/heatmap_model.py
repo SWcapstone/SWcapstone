@@ -594,16 +594,6 @@ class PatchCoreModel:
                 with open(path, "rb") as f:
                     state = pickle.load(f)
 
-        """"
-        model = cls(
-            backbone_name=state["backbone_name"],
-            device=device,
-            coreset_ratio=state["coreset_ratio"],
-            #k_neighbors=state["k_neighbors"],
-            k_neighbors=state.get("k_neighbors", 9),
-            input_size=state["input_size"],
-        )
-        """
         backbone_name = state.get("backbone_name", "resnet18")
         input_size = state.get("input_size", (224, 224))
         k_neighbors = state.get("k_neighbors", 9)
@@ -644,33 +634,6 @@ class PatchCoreModel:
             logger.warning("Memory bank is None. Heatmap generation might not work properly.")
 
         return model
-        """
-        model = cls(
-            backbone_name=backbone_name,
-            input_size=input_size,
-            k_neighbors=k_neighbors,
-            device=device
-        )
-        model._memory_bank = state["memory_bank"]
-        model._feature_map_h = state["feature_map_h"]
-        model._feature_map_w = state["feature_map_w"]
-        model._embedding_dim = state["embedding_dim"]
-
-        # Rebuild k-NN index
-        if model._memory_bank is not None:
-            model._nn_index = NearestNeighbors(
-                n_neighbors=model.k_neighbors,
-                metric="euclidean",
-                algorithm="auto",
-            )
-            model._nn_index.fit(model._memory_bank)
-            logger.info(
-                "Model loaded from %s (coreset=%d, k=%d)",
-                path, model._memory_bank.shape[0], model.k_neighbors,
-            )
-
-        return model
-        """
 
     # ------------------------------------------------------------------
     # Repr
