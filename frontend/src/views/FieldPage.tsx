@@ -45,6 +45,12 @@ function ActionButton({
 }
 
 function ModeSwitch({ mode, setMode }: { mode: ViewMode; setMode: (mode: ViewMode) => void }) {
+  const labels: Record<ViewMode, string> = {
+    raw: "원본",
+    heatmap: "이상 영역",
+    overlay: "검사 오버레이",
+  };
+
   return (
     <div className="grid h-full grid-cols-3 gap-4">
       {(["raw", "heatmap", "overlay"] as ViewMode[]).map((value) => (
@@ -56,11 +62,18 @@ function ModeSwitch({ mode, setMode }: { mode: ViewMode; setMode: (mode: ViewMod
             mode === value ? "border-blue-500 bg-blue-500 text-white" : "border-slate-800 bg-slate-950 text-slate-300"
           )}
         >
-          {value.toUpperCase()}
+          {labels[value]}
         </button>
       ))}
     </div>
   );
+}
+
+function describeHeatmap(score: number | null) {
+  if (score == null) return { value: "-", detail: "검사 전" };
+  if (score >= 4) return { value: "높음", detail: `점수 ${formatMetric(score, 2)}` };
+  if (score >= 2) return { value: "중간", detail: `점수 ${formatMetric(score, 2)}` };
+  return { value: "낮음", detail: `점수 ${formatMetric(score, 2)}` };
 }
 
 function CameraViewport({
@@ -121,6 +134,7 @@ export function FieldPage({
   const confidence = predictResult ? clamp01(predictResult.gate_score) : 0;
   const latency = predictResult ? Math.round(predictResult.latency.total_latency_ms) : 0;
   const heatmapScore = predictResult?.heatmap_score ?? null;
+  const heatmapDisplay = describeHeatmap(heatmapScore);
 
   async function handlePredict() {
     if (!selectedFile) {
@@ -231,7 +245,7 @@ export function FieldPage({
           <Stat label="상태" value={isPredicting ? "검사 중" : decision} icon={CheckCircle2} tone={decision === "이상" ? "red" : "green"} dark />
           <Stat label="확률" value={formatPercent(confidence)} icon={Cpu} tone="blue" dark />
           <Stat label="응답" value={latency ? `${latency}ms` : "-"} icon={Clock3} tone="slate" dark />
-          <Stat label="Heatmap" value={heatmapScore == null ? "-" : formatMetric(heatmapScore)} icon={ShieldAlert} tone="amber" dark />
+          <Stat label="결함 의심도" value={heatmapDisplay.value} sub={heatmapDisplay.detail} icon={ShieldAlert} tone="amber" dark />
         </div>
       </DarkCard>
 

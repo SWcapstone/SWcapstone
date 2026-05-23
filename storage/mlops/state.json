@@ -6,7 +6,7 @@
       "name": "New Upload (2026-05-22T20:11:47)",
       "status": "prepared",
       "sample_count": 8,
-      "feedback_count": 0,
+      "feedback_count": 1,
       "samples": [
         {
           "id": "SMPL-609ADF70",
@@ -545,6 +545,21 @@
   "training_runs": [],
   "feedback_items": [
     {
+      "id": "FDBK-8FFE5BAC",
+      "feedback_type": "confirmed_anomaly",
+      "label": "anomaly",
+      "operator": "operator-01",
+      "comment": "이상 확정",
+      "line": "LINE-A",
+      "image_url": "/mlops-assets/feedback/55899c269f41496692b2e6877fd8b56e.bmp",
+      "created_at": "2026-05-23T19:31:32",
+      "model_prediction": {
+        "gate_score": 0.9999991655349731,
+        "heatmap_score": 4.562513828277588,
+        "predicted_label": "anomaly"
+      }
+    },
+    {
       "id": "FDBK-B07DD63C",
       "feedback_type": "false_negative",
       "label": "anomaly",
@@ -666,6 +681,18 @@
     }
   ],
   "logs": [
+    {
+      "id": "862AF6D1",
+      "time": "2026-05-23T19:31:32",
+      "level": "info",
+      "message": "Data Ingested (S3 synced): confirmed_anomaly"
+    },
+    {
+      "id": "FD00B696",
+      "time": "2026-05-23T01:27:36",
+      "level": "info",
+      "message": "Training Started: 2026-05-23 10:27:03 KST"
+    },
     {
       "id": "F43CA8C4",
       "time": "2026-05-22T20:11:48",
