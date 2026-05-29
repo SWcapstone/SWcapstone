@@ -1,0 +1,95 @@
+/Users/danghyeonsong/HYUE/SWCapstone/scripts/train_gate.py:728: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  "trained_at": datetime.utcnow().isoformat() + "Z",
+============================================================
+Gate Model Training Pipeline
+  tag         : v2
+  model       : mnv3_small
+  device      : mps
+  batch_size  : 32
+  epochs      : 30
+  lr          : 0.001
+  optimizer   : AdamW
+  weight_decay: 0.0001
+  scheduler   : cosine
+  run_tag     : v2_mnv3_small
+  seed        : 42
+  mlflow      : stub (not installed)
+============================================================
+  splits_dir from config (/app/splits) missing; falling back to /Users/danghyeonsong/HYUE/SWCapstone/splits
+
+Train set: 11353 images (normal=10384, anomaly=969)
+Val   set: 2432 images
+Test  set: 2435 images
+Auto pos_weight: 10.7162
+
+--- Training ---
+  Epoch   1/30  train_loss=0.4667 train_acc=0.9188  val_loss=0.2344 val_acc=0.9720  lr=0.000997
+  Epoch   2/30  train_loss=0.3054 train_acc=0.9599  val_loss=0.6308 val_acc=0.7578  lr=0.000989
+  Epoch   3/30  train_loss=0.2611 train_acc=0.9636  val_loss=0.2801 val_acc=0.9581  lr=0.000976
+  Epoch   4/30  train_loss=0.2156 train_acc=0.9736  val_loss=0.2164 val_acc=0.9589  lr=0.000957
+  Epoch   5/30  train_loss=0.2250 train_acc=0.9663  val_loss=0.1557 val_acc=0.9836  lr=0.000933
+  Epoch   6/30  train_loss=0.2106 train_acc=0.9747  val_loss=0.1116 val_acc=0.9762  lr=0.000905
+  Epoch   7/30  train_loss=0.1719 train_acc=0.9730  val_loss=0.1513 val_acc=0.9905  lr=0.000872
+  Epoch   8/30  train_loss=0.1531 train_acc=0.9770  val_loss=0.1336 val_acc=0.9868  lr=0.000835
+  Epoch   9/30  train_loss=0.1176 train_acc=0.9805  val_loss=0.1019 val_acc=0.9918  lr=0.000794
+  Epoch  10/30  train_loss=0.1339 train_acc=0.9819  val_loss=0.1655 val_acc=0.9465  lr=0.000750
+  Epoch  11/30  train_loss=0.1199 train_acc=0.9806  val_loss=0.1985 val_acc=0.9383  lr=0.000703
+  Epoch  12/30  train_loss=0.1114 train_acc=0.9839  val_loss=0.1063 val_acc=0.9901  lr=0.000655
+  Epoch  13/30  train_loss=0.1015 train_acc=0.9859  val_loss=0.0800 val_acc=0.9881  lr=0.000604
+  Epoch  14/30  train_loss=0.1041 train_acc=0.9853  val_loss=0.1041 val_acc=0.9873  lr=0.000552
+  Epoch  15/30  train_loss=0.0780 train_acc=0.9871  val_loss=0.0959 val_acc=0.9959  lr=0.000500
+  Epoch  16/30  train_loss=0.0758 train_acc=0.9892  val_loss=0.0821 val_acc=0.9836  lr=0.000448
+  Epoch  17/30  train_loss=0.0668 train_acc=0.9920  val_loss=0.0663 val_acc=0.9955  lr=0.000396
+  Epoch  18/30  train_loss=0.0477 train_acc=0.9933  val_loss=0.0868 val_acc=0.9984  lr=0.000345
+  Epoch  19/30  train_loss=0.0583 train_acc=0.9931  val_loss=0.0366 val_acc=0.9901  lr=0.000297
+  Epoch  20/30  train_loss=0.0371 train_acc=0.9931  val_loss=0.0589 val_acc=0.9975  lr=0.000250
+  Epoch  21/30  train_loss=0.0616 train_acc=0.9922  val_loss=0.0381 val_acc=0.9955  lr=0.000206
+  Epoch  22/30  train_loss=0.0412 train_acc=0.9935  val_loss=0.0431 val_acc=0.9988  lr=0.000165
+  Epoch  23/30  train_loss=0.0250 train_acc=0.9967  val_loss=0.0484 val_acc=0.9984  lr=0.000128
+  Epoch  24/30  train_loss=0.0271 train_acc=0.9955  val_loss=0.0468 val_acc=0.9984  lr=0.000095
+  Epoch  25/30  train_loss=0.0281 train_acc=0.9959  val_loss=0.0408 val_acc=0.9988  lr=0.000067
+  Epoch  26/30  train_loss=0.0241 train_acc=0.9967  val_loss=0.0482 val_acc=0.9988  lr=0.000043
+  Early stopping at epoch 26 (patience=7)
+
+--- Calibration on val set ---
+  Uncalibrated val AUROC: 0.9998
+  platt val AUROC: 0.9998
+  isotonic val AUROC: 0.9999
+  Selected calibration: isotonic
+
+--- Evaluation on test set ---
+  test/auroc: 0.9949
+  test/auprc: 0.9874
+  test/f1: 0.9685
+  test/recall: 0.9569
+  test/precision: 0.9804
+  test/optimal_threshold: 0.6667
+
+--- Threshold Sweep ---
+  Recommended T_low : 0.100
+  Recommended T_high: 0.500
+  Recall            : 0.9809
+  Precision         : 0.9361
+  F1                : 0.9579
+  Heatmap call rate : 0.0899
+
+Model saved: /Users/danghyeonsong/HYUE/SWCapstone/models/v2_mnv3_small_gate.pt
+Calibrator saved: /Users/danghyeonsong/HYUE/SWCapstone/models/v2_mnv3_small_calibrator.pkl
+Config saved: /Users/danghyeonsong/HYUE/SWCapstone/models/v2_mnv3_small_config.json
+
+============================================================
+SUMMARY
+============================================================
+  Test AUROC    : 0.9949
+  Test AUPRC    : 0.9874
+  Test F1       : 0.9685
+  Test Recall   : 0.9569
+  Test Precision: 0.9804
+  Calibration   : isotonic
+  Recommended T_low : 0.100
+  Recommended T_high: 0.500
+
+  Model saved : /Users/danghyeonsong/HYUE/SWCapstone/models/v2_mnv3_small_gate.pt
+============================================================
+
+Done.

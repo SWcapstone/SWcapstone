@@ -322,8 +322,10 @@ async def get_dashboard():
 
             # 2. 메타데이터가 있으면 활용, 없으면 기본값 생성
             kind = metadata.get("kind") or ("gate" if "gate" in fname.lower() or "eff" in fname.lower() or "mnv3" in fname.lower() else "heatmap")
-            recovered_id = metadata.get("id") or f"FILE-{uuid.uuid4().hex[:4].upper()}-{fname.split('_')[-1].replace('.pt', '').upper()}"
-            
+
+            base_name = metadata.get("name") or fname.replace(".pt", "")
+            recovered_id = metadata.get("id") or base_name.replace(" ", "-").upper()
+
             new_entry = {
                 "id": recovered_id,
                 "name": metadata.get("name") or f"Found: {fname}",

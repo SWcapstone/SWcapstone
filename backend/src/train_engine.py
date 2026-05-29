@@ -60,7 +60,7 @@ class TrainEngine:
             )
             
             # 2. Initialize Model & Config
-            backbone = "efficientnet_b0" if "EFF" in req.get("architecture", "") else "mobilenet_v3_large"
+            backbone = "efficientnet_b0" if "EFF" in req.get("architecture", "") else "mobilenet_v3_small"
             model = GateModel(backbone=backbone, device=str(self.device))
             
             config = GateTrainConfig(

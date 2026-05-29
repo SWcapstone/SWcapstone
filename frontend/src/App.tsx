@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { fetchDashboard } from "./api/mlops";
 import type { AdminTab, Audience, LineId } from "./app/types";
-import { cls } from "./app/utils";
 import { TopBar } from "./components/TopBar";
 import { MessageBanner } from "./components/ui";
 import type { DashboardResponse } from "./types/mlops";
@@ -45,12 +44,7 @@ export default function App() {
   }, [hasActiveTraining]);
 
   return (
-    <div
-      className={cls(
-        "h-screen w-screen overflow-hidden font-['Pretendard','Inter','system-ui','sans-serif']",
-        audience === "field" ? "bg-[#030712] text-slate-100" : "bg-slate-100 text-slate-900"
-      )}
-    >
+    <div className="h-screen w-screen overflow-hidden bg-[#f4f6f8] font-['Noto_Sans_KR','Segoe_UI','Malgun_Gothic','Apple_SD_Gothic_Neo','Arial','sans-serif'] text-[#111827]">
       <div className="flex h-full flex-col">
         <TopBar
           audience={audience}
@@ -61,14 +55,13 @@ export default function App() {
           setSelectedLine={setSelectedLine}
         />
 
-        <main className={cls("min-h-0 flex-1 overflow-auto px-6 py-4", audience === "field" ? "bg-[#030712]" : "")}>
+        <main className="min-h-0 flex-1 overflow-auto bg-[#f4f6f8] px-5 py-4">
           {loading ? <MessageBanner message="대시보드를 불러오는 중입니다." tone="slate" dark={audience === "field"} /> : null}
           {error ? <div className="mb-4"><MessageBanner message={error} tone="red" dark={audience === "field"} /></div> : null}
-          {dashboard && audience === "field" ? <FieldPage selectedLine={selectedLine} dashboard={dashboard} onRefresh={refresh} /> : null}
+          {dashboard && audience === "field" ? <FieldPage selectedLine={selectedLine} onRefresh={refresh} /> : null}
           {dashboard && audience === "admin" ? <AdminPage adminTab={adminTab} dashboard={dashboard} onRefresh={refresh} /> : null}
         </main>
       </div>
     </div>
   );
 }
-

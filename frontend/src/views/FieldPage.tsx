@@ -3,29 +3,30 @@ import { CheckCircle2, Clock3, Cpu, ShieldAlert } from "lucide-react";
 import { predictAnomaly } from "../api/anomaly";
 import { uploadFeedback } from "../api/mlops";
 import type { PredictResponse } from "../types/anomaly";
-import type { DashboardResponse } from "../types/mlops";
 import type { LineId, Tone, ViewMode } from "../app/types";
-import { clamp01, formatMetric, formatPercent, pickCanaryModel, pickProductionModel, toDisplayDecision, toIssueType } from "../app/utils";
-import { Badge, DarkCard, MessageBanner, Stat } from "../components/ui";
+import { clamp01, formatMetric, formatPercent, toDisplayDecision } from "../app/utils";
+import { DarkCard, MessageBanner, Stat } from "../components/ui";
 import { cls } from "../app/utils";
 
 function ActionButton({
   title,
+  hint,
   tone,
   disabled,
   onClick,
 }: {
   title: string;
+  hint: string;
   tone: Tone;
   disabled?: boolean;
   onClick: () => void;
 }) {
   const toneMap: Record<Tone, string> = {
-    blue: "border-sky-950 bg-sky-900 text-sky-50 hover:bg-sky-800",
-    red: "border-rose-950 bg-rose-900 text-rose-50 hover:bg-rose-800",
-    amber: "border-amber-950 bg-amber-800 text-amber-50 hover:bg-amber-700",
-    green: "border-emerald-950 bg-emerald-900 text-emerald-50 hover:bg-emerald-800",
-    slate: "border-slate-700 bg-slate-800 text-slate-100 hover:bg-slate-700",
+    blue: "border-rose-800 bg-rose-800 text-white hover:bg-rose-700",
+    red: "border-red-800 bg-red-800 text-white hover:bg-red-700",
+    amber: "border-orange-800 bg-orange-800 text-white hover:bg-orange-700",
+    green: "border-rose-900 bg-rose-900 text-white hover:bg-rose-800",
+    slate: "border-slate-700 bg-slate-700 text-white hover:bg-slate-600",
   };
 
   return (
@@ -33,32 +34,46 @@ function ActionButton({
       onClick={onClick}
       disabled={disabled}
       className={cls(
-        "min-h-[70px] rounded-2xl border-2 px-4 text-left text-base font-black transition disabled:cursor-not-allowed disabled:opacity-50",
+        "flex aspect-square min-h-[210px] flex-col items-center justify-center rounded-[14px] border px-5 text-center transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50",
         toneMap[tone]
       )}
     >
-      {title}
+      <span className="text-[44px] font-black leading-[1.02] tracking-tight">{title}</span>
+      <span className="mt-3 text-[18px] font-bold leading-tight opacity-85">{hint}</span>
     </button>
   );
 }
 
 function ModeSwitch({ mode, setMode }: { mode: ViewMode; setMode: (mode: ViewMode) => void }) {
+  const labels: Record<ViewMode, string> = {
+    raw: "원본",
+    heatmap: "이상 영역",
+    overlay: "검사 오버레이",
+  };
+
   return (
-    <div className="grid h-full grid-cols-3 gap-3">
+    <div className="grid h-full grid-cols-3 gap-4">
       {(["raw", "heatmap", "overlay"] as ViewMode[]).map((value) => (
         <button
           key={value}
           onClick={() => setMode(value)}
           className={cls(
-            "rounded-2xl border-2 text-sm font-black transition",
-            mode === value ? "border-cyan-400 bg-cyan-400 text-slate-950" : "border-slate-800 bg-slate-950 text-slate-300"
+            "rounded-[10px] border text-[18px] font-black tracking-wide transition",
+            mode === value ? "border-blue-500 bg-blue-500 text-white" : "border-slate-800 bg-slate-950 text-slate-300"
           )}
         >
-          {value.toUpperCase()}
+          {labels[value]}
         </button>
       ))}
     </div>
   );
+}
+
+function describeHeatmap(score: number | null) {
+  if (score == null) return { value: "-", detail: "검사 전" };
+  if (score >= 4) return { value: "높음", detail: `점수 ${formatMetric(score, 2)}` };
+  if (score >= 2) return { value: "중간", detail: `점수 ${formatMetric(score, 2)}` };
+  return { value: "낮음", detail: `점수 ${formatMetric(score, 2)}` };
 }
 
 function CameraViewport({
@@ -76,7 +91,7 @@ function CameraViewport({
   const showOverlay = mode === "overlay" && rawImageUrl && overlayImageUrl;
 
   return (
-    <div className="relative h-full min-h-0 overflow-hidden rounded-2xl border-2 border-slate-800 bg-[#040b17]">
+    <div className="relative h-full min-h-0 overflow-hidden rounded-[14px] border border-slate-800 bg-[#040b17]">
       {!imageSrc ? (
         <div className="absolute inset-0 grid place-items-center text-base font-bold text-slate-400">
           이미지 업로드 후 검사 결과가 표시됩니다.
@@ -95,11 +110,9 @@ function CameraViewport({
 
 export function FieldPage({
   selectedLine,
-  dashboard,
   onRefresh,
 }: {
   selectedLine: LineId;
-  dashboard: DashboardResponse;
   onRefresh: () => Promise<void>;
 }) {
   const [mode, setMode] = useState<ViewMode>("raw");
@@ -111,11 +124,6 @@ export function FieldPage({
   const [isPredicting, setIsPredicting] = useState(false);
   const [message, setMessage] = useState("");
 
-  const productionModel = pickProductionModel(dashboard);
-  const canaryModel = pickCanaryModel(dashboard);
-  const activeModelId =
-    canaryModel && dashboard.deployment.canary_line === selectedLine ? canaryModel.id : productionModel?.id ?? "-";
-
   useEffect(() => {
     return () => {
       if (rawImageUrl.startsWith("blob:")) URL.revokeObjectURL(rawImageUrl);
@@ -126,6 +134,7 @@ export function FieldPage({
   const confidence = predictResult ? clamp01(predictResult.gate_score) : 0;
   const latency = predictResult ? Math.round(predictResult.latency.total_latency_ms) : 0;
   const heatmapScore = predictResult?.heatmap_score ?? null;
+  const heatmapDisplay = describeHeatmap(heatmapScore);
 
   async function handlePredict() {
     if (!selectedFile) {
@@ -180,28 +189,23 @@ export function FieldPage({
   }
 
   return (
-    <div className="grid h-full min-h-0 grid-cols-[1.2fr_0.8fr] gap-4">
-      <DarkCard className="flex min-h-0 flex-col p-5">
-        <div className="mb-4 flex items-center justify-between gap-3">
+    <div className="relative grid h-full min-h-0 grid-cols-[1.28fr_0.72fr] gap-4">
+      {message ? (
+        <div className="pointer-events-none absolute right-4 top-4 z-30 w-[360px]">
+          <MessageBanner message={message} tone="blue" />
+        </div>
+      ) : null}
+
+      <DarkCard className="grid min-h-0 grid-rows-[auto_auto_1fr_auto_auto] gap-4 p-5">
+        <div className="flex items-center justify-between gap-4">
           <div>
             <div className="text-2xl font-black text-slate-50">현장 검사</div>
-            <div className="mt-1 text-base font-semibold text-slate-300">{selectedLine} · 모델 {activeModelId}</div>
           </div>
-          <Badge tone={decision === "이상" ? "red" : decision === "정상" ? "green" : "slate"} dark>
-            {decision}
-          </Badge>
         </div>
 
-        <div className="mb-4 grid grid-cols-4 gap-3">
-          <Stat label="상태" value={isPredicting ? "검사 중" : decision} icon={CheckCircle2} tone={decision === "이상" ? "red" : "green"} dark />
-          <Stat label="확률" value={formatPercent(confidence)} icon={Cpu} tone="blue" dark />
-          <Stat label="응답" value={latency ? `${latency}ms` : "-"} icon={Clock3} tone="slate" dark />
-          <Stat label="Heatmap" value={heatmapScore == null ? "-" : formatMetric(heatmapScore)} icon={ShieldAlert} tone="amber" dark />
-        </div>
-
-        <div className="mb-4 grid grid-cols-[1fr_auto] gap-3">
-          <label className="flex cursor-pointer items-center justify-center rounded-2xl border-2 border-dashed border-slate-700 bg-slate-900 px-4 py-3 text-base font-bold text-slate-100 hover:bg-slate-800">
-            이미지 업로드
+        <div className="grid grid-cols-[1fr_220px] gap-4">
+          <label className="flex min-h-[74px] min-w-0 cursor-pointer items-center justify-center rounded-[14px] border border-dashed border-slate-700 bg-slate-900 px-4 py-3 text-[22px] font-black text-slate-100 hover:bg-slate-800">
+            <span className="max-w-full truncate">{selectedFile ? selectedFile.name : "이미지 업로드"}</span>
             <input
               type="file"
               accept="image/*"
@@ -223,52 +227,38 @@ export function FieldPage({
           <button
             onClick={handlePredict}
             disabled={isPredicting}
-            className="rounded-2xl border-2 border-cyan-400 bg-cyan-400 px-6 py-3 text-base font-black text-slate-950 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-[14px] border border-blue-500 bg-blue-500 px-6 py-3 text-[22px] font-black text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isPredicting ? "검사 중" : "검사 실행"}
           </button>
         </div>
 
-        {message ? <MessageBanner message={message} tone="blue" dark /> : null}
+        <div className="min-h-0">
+          <CameraViewport mode={mode} rawImageUrl={rawImageUrl} overlayImageUrl={overlayImageUrl} heatmapImageUrl={heatmapImageUrl} />
+        </div>
 
-        <div className="mb-4 mt-4 h-[56px]">
+        <div className="h-[78px]">
           <ModeSwitch mode={mode} setMode={setMode} />
         </div>
 
-        <div className="min-h-0 flex-1">
-          <CameraViewport mode={mode} rawImageUrl={rawImageUrl} overlayImageUrl={overlayImageUrl} heatmapImageUrl={heatmapImageUrl} />
+        <div className="grid grid-cols-4 gap-4">
+          <Stat label="상태" value={isPredicting ? "검사 중" : decision} icon={CheckCircle2} tone={decision === "이상" ? "red" : "green"} dark />
+          <Stat label="확률" value={formatPercent(confidence)} icon={Cpu} tone="blue" dark />
+          <Stat label="응답" value={latency ? `${latency}ms` : "-"} icon={Clock3} tone="slate" dark />
+          <Stat label="결함 의심도" value={heatmapDisplay.value} sub={heatmapDisplay.detail} icon={ShieldAlert} tone="amber" dark />
         </div>
       </DarkCard>
 
-      <DarkCard className="grid min-h-0 grid-rows-[auto_auto_1fr] gap-4 p-5">
-        <div className="grid grid-cols-2 gap-3">
-          <Stat label="라인" value={selectedLine} dark />
-          <Stat label="모델" value={activeModelId} dark />
-          <Stat label="판정" value={decision} dark />
-          <Stat label="유형" value={toIssueType(predictResult)} dark />
+      <DarkCard className="grid min-h-0 grid-rows-[auto_1fr] gap-4 p-5">
+        <div>
+          <div className="text-2xl font-black text-slate-50">작업자 피드백</div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <ActionButton title="오탐 저장" tone="blue" onClick={() => handleFeedback("false_positive", "normal", "오탐 저장")} />
-          <ActionButton title="미탐 저장" tone="red" onClick={() => handleFeedback("false_negative", "anomaly", "미탐 저장")} />
-          <ActionButton title="이상 확정" tone="amber" onClick={() => handleFeedback("confirmed_anomaly", "anomaly", "이상 확정")} />
-          <ActionButton title="검토 보류" tone="slate" onClick={() => handleFeedback("needs_review", "unlabeled", "검토 보류")} />
-        </div>
-
-        <div className="min-h-0 overflow-auto rounded-2xl border-2 border-slate-800 bg-slate-950 p-4">
-          <div className="mb-3 text-lg font-black text-slate-100">최근 피드백</div>
-          <div className="space-y-3">
-            {dashboard.feedback_items.slice(0, 4).map((item) => (
-              <div key={item.id} className="rounded-2xl border border-slate-800 bg-slate-900 p-3">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="text-sm font-bold text-slate-100">{item.feedback_type}</div>
-                  <div className="text-sm text-slate-400">{item.line ?? selectedLine}</div>
-                </div>
-                <div className="mt-2 text-sm text-slate-300">{item.comment || "메모 없음"}</div>
-              </div>
-            ))}
-            {!dashboard.feedback_items.length ? <div className="text-base font-semibold text-slate-400">아직 저장된 피드백이 없습니다.</div> : null}
-          </div>
+        <div className="grid grid-cols-2 gap-4 self-start">
+          <ActionButton title="오탐" hint="정상인데 이상" tone="blue" onClick={() => handleFeedback("false_positive", "normal", "오탐 저장")} />
+          <ActionButton title="미탐" hint="이상인데 정상" tone="red" onClick={() => handleFeedback("false_negative", "anomaly", "미탐 저장")} />
+          <ActionButton title="이상" hint="불량 확정" tone="amber" onClick={() => handleFeedback("confirmed_anomaly", "anomaly", "이상 확정")} />
+          <ActionButton title="보류" hint="관리자 확인" tone="slate" onClick={() => handleFeedback("needs_review", "unlabeled", "검토 보류")} />
         </div>
       </DarkCard>
     </div>
