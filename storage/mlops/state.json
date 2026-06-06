@@ -388,92 +388,163 @@
   ],
   "model_versions": [
     {
-      "id": "MODEL-1B0061",
-      "name": "2026-05-28 00:57:22 KST",
-      "status": "production",
-      "metrics": {
-        "epoch": 10,
-        "train_loss": 0.16221468257052557,
-        "val_loss": 0.11959599650331906,
-        "val_acc": 0.68,
-        "val_recall": 0.5789473684210527,
-        "val_precision": 1.0,
-        "val_f1": 0.7333333333333334,
-        "lr": 1e-06,
-        "time_s": 8.481326580047607
-      },
-      "lineage": "Auto-train from DATA-C2BD0809",
-      "filename": "retrained_efficientnet_b0_20260527_155856.pt"
-    },
-    {
-      "id": "MODEL-42CBF9",
-      "name": "2026-05-28 00:53:46 KST",
-      "status": "candidate",
-      "metrics": {
-        "epoch": 10,
-        "train_loss": 0.15513307973742485,
-        "val_loss": 0.12950472496449947,
-        "val_acc": 0.9166666666666666,
-        "val_recall": 1.0,
-        "val_precision": 0.9,
-        "val_f1": 0.9473684210526316,
-        "lr": 1e-06,
-        "time_s": 5.953448295593262
-      },
-      "lineage": "Auto-train from DATA-C2BD0809",
-      "filename": "retrained_efficientnet_b0_20260527_155455.pt"
-    },
-    {
-      "id": "MODEL-123D23",
-      "name": "2026-05-28 00:50:39 KST",
-      "status": "candidate",
-      "metrics": {
-        "epoch": 10,
-        "train_loss": 0.1879806344707807,
-        "val_loss": 0.17059376556426287,
-        "val_acc": 0.9130434782608695,
-        "val_recall": 1.0,
-        "val_precision": 0.8947368421052632,
-        "val_f1": 0.9444444444444444,
-        "lr": 1e-06,
-        "time_s": 4.13755989074707
-      },
-      "lineage": "Auto-train from DATA-C2BD0809",
-      "filename": "retrained_efficientnet_b0_20260527_155129.pt"
-    },
-    {
-      "id": "MODEL-4BBE84",
-      "name": "2026-05-28 00:46:54 KST",
-      "status": "candidate",
-      "metrics": {
-        "epoch": 9,
-        "train_loss": 0.34312690049409866,
-        "val_loss": 0.7936021685600281,
-        "val_acc": 0.7272727272727273,
-        "val_recall": 1.0,
-        "val_precision": 0.7272727272727273,
-        "val_f1": 0.8421052631578948,
-        "lr": 5.0466050482741686e-05,
-        "time_s": 1.6694884300231934
-      },
-      "lineage": "Auto-train from DATA-C2BD0809",
-      "filename": "retrained_efficientnet_b0_20260527_154719.pt"
-    },
-    {
-      "id": "FILE-791F-GATE",
-      "name": "Found: mlops-run-20260424-14-effnetb0_gate.pt",
+      "id": "FOUND:-V3_PATCHCORE_R18_PATCHCORE.PT",
+      "name": "Found: v3_patchcore_r18_patchcore.pt",
       "status": "candidate",
       "metrics": {
         "f1": "N/A (Discovered)"
       },
       "lineage": "Auto-discovered from Storage",
-      "filename": "mlops-run-20260424-14-effnetb0_gate.pt",
-      "kind": "gate",
+      "filename": "v3_patchcore_r18_patchcore.pt",
+      "kind": "heatmap",
       "params": {},
-      "updated_at": "2026-05-22T18:12:47"
+      "updated_at": "2026-05-29T09:45:08"
     },
     {
-      "id": "FILE-25FD-PATCHCORE",
+      "id": "FOUND:-V3_MNV3_SMALL_NOLEAK_GATE.PT",
+      "name": "Found: v3_mnv3_small_noleak_gate.pt",
+      "status": "candidate",
+      "metrics": {
+        "f1": "N/A (Discovered)"
+      },
+      "lineage": "Auto-discovered from Storage",
+      "filename": "v3_mnv3_small_noleak_gate.pt",
+      "kind": "gate",
+      "params": {},
+      "updated_at": "2026-05-29T09:45:08"
+    },
+    {
+      "id": "FOUND:-V3_MNV3_SMALL_GATE.PT",
+      "name": "Found: v3_mnv3_small_gate.pt",
+      "status": "candidate",
+      "metrics": {
+        "f1": "N/A (Discovered)"
+      },
+      "lineage": "Auto-discovered from Storage",
+      "filename": "v3_mnv3_small_gate.pt",
+      "kind": "gate",
+      "params": {},
+      "updated_at": "2026-05-29T09:45:08"
+    },
+    {
+      "id": "FOUND:-V3_EFFNETB0_GATE.PT",
+      "name": "Found: v3_effnetb0_gate.pt",
+      "status": "candidate",
+      "metrics": {
+        "f1": "N/A (Discovered)"
+      },
+      "lineage": "Auto-discovered from Storage",
+      "filename": "v3_effnetb0_gate.pt",
+      "kind": "gate",
+      "params": {},
+      "updated_at": "2026-05-29T09:45:08"
+    },
+    {
+      "id": "FOUND:-V2_PATCHCORE_R18_PATCHCORE.PT",
+      "name": "Found: v2_patchcore_r18_patchcore.pt",
+      "status": "candidate",
+      "metrics": {
+        "f1": "N/A (Discovered)"
+      },
+      "lineage": "Auto-discovered from Storage",
+      "filename": "v2_patchcore_r18_patchcore.pt",
+      "kind": "heatmap",
+      "params": {},
+      "updated_at": "2026-05-29T09:45:08"
+    },
+    {
+      "id": "FOUND:-V2_MNV3_SMALL_NOLEAK_GATE.PT",
+      "name": "Found: v2_mnv3_small_noleak_gate.pt",
+      "status": "candidate",
+      "metrics": {
+        "f1": "N/A (Discovered)"
+      },
+      "lineage": "Auto-discovered from Storage",
+      "filename": "v2_mnv3_small_noleak_gate.pt",
+      "kind": "gate",
+      "params": {},
+      "updated_at": "2026-05-29T09:45:08"
+    },
+    {
+      "id": "FOUND:-V2_MNV3_SMALL_GATE.PT",
+      "name": "Found: v2_mnv3_small_gate.pt",
+      "status": "candidate",
+      "metrics": {
+        "f1": "N/A (Discovered)"
+      },
+      "lineage": "Auto-discovered from Storage",
+      "filename": "v2_mnv3_small_gate.pt",
+      "kind": "gate",
+      "params": {},
+      "updated_at": "2026-05-29T09:45:08"
+    },
+    {
+      "id": "FOUND:-V2_EFFNETB0_GATE.PT",
+      "name": "Found: v2_effnetb0_gate.pt",
+      "status": "candidate",
+      "metrics": {
+        "f1": "N/A (Discovered)"
+      },
+      "lineage": "Auto-discovered from Storage",
+      "filename": "v2_effnetb0_gate.pt",
+      "kind": "gate",
+      "params": {},
+      "updated_at": "2026-05-29T09:45:08"
+    },
+    {
+      "id": "FOUND:-V1_PATCHCORE_R18_PATCHCORE.PT",
+      "name": "Found: v1_patchcore_r18_patchcore.pt",
+      "status": "candidate",
+      "metrics": {
+        "f1": "N/A (Discovered)"
+      },
+      "lineage": "Auto-discovered from Storage",
+      "filename": "v1_patchcore_r18_patchcore.pt",
+      "kind": "heatmap",
+      "params": {},
+      "updated_at": "2026-05-29T09:45:08"
+    },
+    {
+      "id": "FOUND:-V1_MNV3_SMALL_NOLEAK_GATE.PT",
+      "name": "Found: v1_mnv3_small_noleak_gate.pt",
+      "status": "candidate",
+      "metrics": {
+        "f1": "N/A (Discovered)"
+      },
+      "lineage": "Auto-discovered from Storage",
+      "filename": "v1_mnv3_small_noleak_gate.pt",
+      "kind": "gate",
+      "params": {},
+      "updated_at": "2026-05-29T09:45:08"
+    },
+    {
+      "id": "FOUND:-V1_MNV3_SMALL_GATE.PT",
+      "name": "Found: v1_mnv3_small_gate.pt",
+      "status": "candidate",
+      "metrics": {
+        "f1": "N/A (Discovered)"
+      },
+      "lineage": "Auto-discovered from Storage",
+      "filename": "v1_mnv3_small_gate.pt",
+      "kind": "gate",
+      "params": {},
+      "updated_at": "2026-05-29T09:45:08"
+    },
+    {
+      "id": "FOUND:-V1_EFFNETB0_GATE.PT",
+      "name": "Found: v1_effnetb0_gate.pt",
+      "status": "candidate",
+      "metrics": {
+        "f1": "N/A (Discovered)"
+      },
+      "lineage": "Auto-discovered from Storage",
+      "filename": "v1_effnetb0_gate.pt",
+      "kind": "gate",
+      "params": {},
+      "updated_at": "2026-05-29T09:45:08"
+    },
+    {
+      "id": "FOUND:-ROUND3_PATCHCORE_R18_PATCHCORE.PT",
       "name": "Found: round3_patchcore_r18_patchcore.pt",
       "status": "candidate",
       "metrics": {
@@ -485,7 +556,7 @@
       "updated_at": "2026-05-22T05:36:27"
     },
     {
-      "id": "FILE-D668-GATE",
+      "id": "FOUND:-ROUND3_EFFNETB0_GATE.PT",
       "name": "Found: round3_effnetb0_gate.pt",
       "status": "candidate",
       "metrics": {
@@ -497,7 +568,7 @@
       "updated_at": "2026-05-22T05:36:27"
     },
     {
-      "id": "FILE-E9BA-PATCHCORE",
+      "id": "FOUND:-ROUND2_PATCHCORE_R18_PATCHCORE.PT",
       "name": "Found: round2_patchcore_r18_patchcore.pt",
       "status": "candidate",
       "metrics": {
@@ -509,7 +580,7 @@
       "updated_at": "2026-05-22T05:36:27"
     },
     {
-      "id": "FILE-B6FA-GATE",
+      "id": "FOUND:-ROUND2_EFFNETB0_GATE.PT",
       "name": "Found: round2_effnetb0_gate.pt",
       "status": "candidate",
       "metrics": {
@@ -521,7 +592,7 @@
       "updated_at": "2026-05-22T05:36:27"
     },
     {
-      "id": "FILE-B78F-PATCHCORE",
+      "id": "FOUND:-ROUND1_PATCHCORE_R18_PATCHCORE.PT",
       "name": "Found: round1_patchcore_r18_patchcore.pt",
       "status": "candidate",
       "metrics": {
@@ -533,7 +604,7 @@
       "updated_at": "2026-05-22T05:36:27"
     },
     {
-      "id": "FILE-1B71-GATE",
+      "id": "FOUND:-ROUND1_MNV3_LARGE_GATE.PT",
       "name": "Found: round1_mnv3_large_gate.pt",
       "status": "candidate",
       "metrics": {
@@ -545,7 +616,7 @@
       "updated_at": "2026-05-22T05:36:27"
     },
     {
-      "id": "FILE-97C6-GATE",
+      "id": "FOUND:-ROUND1_EFFNETB0_GATE.PT",
       "name": "Found: round1_effnetb0_gate.pt",
       "status": "candidate",
       "metrics": {
@@ -557,7 +628,7 @@
       "updated_at": "2026-05-22T05:36:27"
     },
     {
-      "id": "FILE-3288-102727",
+      "id": "FOUND:-RETRAINED_EFFICIENTNET_B0_20260508_102727.PT",
       "name": "Found: retrained_efficientnet_b0_20260508_102727.pt",
       "status": "candidate",
       "metrics": {
@@ -569,7 +640,7 @@
       "updated_at": "2026-05-22T05:36:27"
     },
     {
-      "id": "FILE-4586-090850",
+      "id": "FOUND:-RETRAINED_EFFICIENTNET_B0_20260508_090850.PT",
       "name": "Found: retrained_efficientnet_b0_20260508_090850.pt",
       "status": "candidate",
       "metrics": {
@@ -581,7 +652,7 @@
       "updated_at": "2026-05-22T05:36:27"
     },
     {
-      "id": "FILE-F7E9-MODEL",
+      "id": "FOUND:-HEATMAP_MODEL.PT",
       "name": "Found: heatmap_model.pt",
       "status": "candidate",
       "metrics": {
@@ -593,7 +664,7 @@
       "updated_at": "2026-05-22T05:36:27"
     },
     {
-      "id": "FILE-33C8-MODEL",
+      "id": "FOUND:-GATE_MODEL.PT",
       "name": "Found: gate_model.pt",
       "status": "candidate",
       "metrics": {
@@ -1237,7 +1308,7 @@
     "ensemble_enabled": true,
     "current_model_id": "MODEL-1B0061",
     "gate_file": "gate_model.pt",
-    "heatmap_file": "round3_patchcore_r18_patchcore.pt"
+    "heatmap_file": "v3_patchcore_r18_patchcore.pt"
   },
   "training_recipes": [
     {
@@ -1263,6 +1334,18 @@
     "round2_effnetb0_gate.pt",
     "round2_patchcore_r18_patchcore.pt",
     "round3_effnetb0_gate.pt",
-    "round3_patchcore_r18_patchcore.pt"
+    "round3_patchcore_r18_patchcore.pt",
+    "v1_effnetb0_gate.pt",
+    "v1_mnv3_small_gate.pt",
+    "v1_mnv3_small_noleak_gate.pt",
+    "v1_patchcore_r18_patchcore.pt",
+    "v2_effnetb0_gate.pt",
+    "v2_mnv3_small_gate.pt",
+    "v2_mnv3_small_noleak_gate.pt",
+    "v2_patchcore_r18_patchcore.pt",
+    "v3_effnetb0_gate.pt",
+    "v3_mnv3_small_gate.pt",
+    "v3_mnv3_small_noleak_gate.pt",
+    "v3_patchcore_r18_patchcore.pt"
   ]
 }

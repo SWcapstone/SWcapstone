@@ -5,7 +5,7 @@ seed: 42
 # Data paths
 data:
   base_dir: "/app/data/dataset_type/dataset_type"
-  splits_dir: "/app/splits"
+  splits_dir: "splits_noleak"
 
 # Gate model config
 gate:
@@ -54,13 +54,15 @@ heatmap:
     patchcore_r18:
       backbone: "resnet18"
       input_size: 224
-      coreset_sampling_ratio: 0.10
+      # Keep the same coreset size used in the earlier PatchCore benchmark so
+      # noleak retraining stays comparable in both accuracy and latency.
+      coreset_sampling_ratio: 0.005
       num_neighbors: 9
       batch_size: 32
     patchcore_wrn50:
       backbone: "wide_resnet50_2"
       input_size: 224
-      coreset_sampling_ratio: 0.10
+      coreset_sampling_ratio: 0.005
       num_neighbors: 9
       batch_size: 32
 
