@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   createTrainingRun,
+  materializeFeedbackDataset,
   promoteModel,
   rollbackDeployment,
   saveTrainingRecipe,
@@ -107,6 +108,16 @@ export function TrainDeployView({
     try {
       setBusyAction("train");
       setMessage("");
+      const trainingFeedbackIds = dashboard.feedback_items
+        .filter((item) => item.label === "normal" || item.label === "anomaly")
+        .map((item) => item.id);
+      if (trainingFeedbackIds.length) {
+        await materializeFeedbackDataset({
+          mode: "append",
+          targetDatasetId: selectedDatasetId,
+          feedbackItemIds: trainingFeedbackIds,
+        });
+      }
       await createTrainingRun({
         modelName: modelName.trim() || formatKoreaTimestamp(),
         knownModelIds: dashboard.model_versions.map((model) => model.id),
