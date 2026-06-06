@@ -21,6 +21,7 @@ export type DatasetVersion = {
   source_dataset_id?: string | null;
   sample_count: number;
   feedback_count: number;
+  materialized_feedback_item_ids?: string[];
   notes?: string;
   samples?: DatasetSample[];
 };
@@ -31,6 +32,7 @@ export type Architecture = {
   kind: "gate" | "heatmap" | string;
   source?: string;
   created_at?: string;
+  file_name?: string | null;
   interface?: {
     input: string;
     output: string;
@@ -59,6 +61,7 @@ export type TrainingRun = {
   id: string;
   name?: string;
   status?: string;
+  filename?: string;
   created_at?: string;
   dataset_version_id?: string;
   base_model_version_id?: string | null;
@@ -88,6 +91,7 @@ export type ModelVersion = {
   id: string;
   name: string;
   status: string;
+  filename?: string;
   dataset_version_id?: string | null;
   gate_architecture_id?: string;
   heatmap_architecture_id?: string;
@@ -149,16 +153,18 @@ export type DashboardResponse = {
   active_dataset_id: string;
   dataset_versions: DatasetVersion[];
   architectures: Architecture[];
-  training_recipes?: TrainingRecipe[];
+  training_recipes: TrainingRecipe[];
   training_runs: TrainingRun[];
   model_versions: ModelVersion[];
   feedback_items: FeedbackItem[];
   logs: LogItem[];
-  deployment?: DeploymentState;
-  interfaces?: Record<string, string>;
-  available_model_files?: string[];
-  runtime_config?: {
-    ensemble_enabled?: boolean;
-    current_model_id?: string | null;
+  deployment: DeploymentState;
+  interfaces: Record<string, string>;
+  available_model_files: string[];
+  runtime_config: {
+    ensemble_enabled: boolean;
+    current_model_id: string | null;
+    gate_file: string | null;
+    heatmap_file: string | null;
   };
 };

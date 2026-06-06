@@ -17,13 +17,107 @@ html, body, #root {
 }
 
 body {
+  background: #f4f6f8;
   font-family:
-    Inter,
-    "Pretendard",
     "Noto Sans KR",
+    "Segoe UI",
+    "Malgun Gothic",
+    "Apple SD Gothic Neo",
     -apple-system,
     BlinkMacSystemFont,
-    "Segoe UI",
+    Arial,
     Roboto,
     sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+.ui-panel {
+  border: 1px solid #d8dee6;
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.ui-panel-muted {
+  border: 1px solid #d8dee6;
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.ui-control {
+  min-width: 0;
+  border: 1px solid #d8dee6;
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 0.5rem 0.75rem;
+  color: #111827;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.ui-control:focus {
+  outline: 2px solid rgba(37, 99, 235, 0.22);
+  outline-offset: 1px;
+  border-color: #2563eb;
+}
+
+.ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 800;
+  transition: background-color 140ms ease, border-color 140ms ease, opacity 140ms ease;
+}
+
+.ui-button-primary {
+  border-color: #2563eb;
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.ui-button-primary:hover {
+  background: #1d4ed8;
+}
+
+.ui-button-neutral {
+  border-color: #d8dee6;
+  background: #ffffff;
+  color: #334155;
+}
+
+.ui-button-neutral:hover {
+  background: #f8fafc;
+}
+
+.ui-button-dark {
+  border-color: #111827;
+  background: #111827;
+  color: #ffffff;
+}
+
+.ui-button-danger {
+  border-color: #e11d48;
+  background: #e11d48;
+  color: #ffffff;
+}
+
+.ui-button:disabled {
+  opacity: 0.55;
 }

@@ -1,0 +1,50 @@
+{
+  "tag": "v2",
+  "run_tag": "v2_mnv3_small_kfold",
+  "gate": "mnv3_small",
+  "method": "5-fold-stratified-cv",
+  "loss": "FocalLoss(alpha=0.25, gamma=2.0)",
+  "tta": true,
+  "n_folds": 5,
+  "seed": 42,
+  "epochs_max": 30,
+  "lr": 0.001,
+  "batch_size": 32,
+  "weight_decay": 0.0001,
+  "optimal_threshold": 0.23529411764705882,
+  "image_level": {
+    "auroc": 0.9770324593391324,
+    "auprc": 0.9453472219992557,
+    "f1": 0.9242761692650334,
+    "recall": 0.8989169675090253,
+    "precision": 0.9511077158135982
+  },
+  "original_level": {
+    "auroc": 0.9840167230632018,
+    "auprc": 0.9647952193907088,
+    "f1": 0.931098696461825,
+    "recall": 0.9025270758122743,
+    "precision": 0.9615384615384616,
+    "n_originals": 3244,
+    "n_anomaly_originals": 277
+  },
+  "bootstrap_95ci": {
+    "recall": {
+      "lo": 0.8659420289855072,
+      "hi": 0.9361741971471831
+    },
+    "f1": {
+      "lo": 0.9079993865030676,
+      "hi": 0.9522063366120748
+    },
+    "auprc": {
+      "lo": 0.9460662256720395,
+      "hi": 0.98097604358693
+    },
+    "auroc": {
+      "lo": 0.9716158602467369,
+      "hi": 0.9939684967217617
+    }
+  },
+  "trained_at": "2026-05-19T07:38:19.907874+00:00"
+}

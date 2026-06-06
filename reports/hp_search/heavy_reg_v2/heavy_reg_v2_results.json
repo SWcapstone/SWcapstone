@@ -1,0 +1,73 @@
+{
+  "name": "heavy_reg_v2",
+  "gate": "mnv3_small",
+  "train_tag": "v2",
+  "description": "Same heavy reg on v2",
+  "pretrained": true,
+  "dropout": 0.6,
+  "lr": 0.0005,
+  "weight_decay": 0.01,
+  "label_smoothing": 0.1,
+  "mixup_alpha": 0.3,
+  "aug_strength": "heavy",
+  "actual_epochs": 50,
+  "best_val_loss": 0.9689930693099373,
+  "test_acc": 0.9437371663244353,
+  "test_f1": 0.7522603978300181,
+  "test_auroc": 0.9976076555023923,
+  "test_precision": 0.6046511627906976,
+  "test_recall": 0.9952153110047847,
+  "cross_mean_f1": 0.8501061883278495,
+  "generalisation_gap": -0.09784579049783138,
+  "elapsed_sec": 3991.025535106659,
+  "cross_detail": {
+    "v1_test_gate": {
+      "auroc": 0.9991325602584836,
+      "auprc": 0.9924806014914164,
+      "f1": 0.7660550458715596,
+      "recall": 1.0,
+      "precision": 0.620817843866171,
+      "accuracy": 0.9476386036960985
+    },
+    "v1_balanced_test": {
+      "auroc": 0.9988750000000001,
+      "auprc": 0.9990262974615465,
+      "f1": 0.9851485148514851,
+      "recall": 0.995,
+      "precision": 0.9754901960784313,
+      "accuracy": 0.985
+    },
+    "v2_test_gate": {
+      "auroc": 0.9976076555023923,
+      "auprc": 0.9845348703602061,
+      "f1": 0.7522603978300181,
+      "recall": 0.9952153110047847,
+      "precision": 0.6046511627906976,
+      "accuracy": 0.9437371663244353
+    },
+    "v2_balanced_test": {
+      "auroc": 0.998375,
+      "auprc": 0.9984092031130964,
+      "f1": 0.963855421686747,
+      "recall": 1.0,
+      "precision": 0.9302325581395349,
+      "accuracy": 0.9625
+    },
+    "v3_test_gate": {
+      "auroc": 0.9911119430924746,
+      "auprc": 0.9630083770480391,
+      "f1": 0.6816269284712483,
+      "recall": 0.972,
+      "precision": 0.5248380129589633,
+      "accuracy": 0.922286888052037
+    },
+    "v3_balanced_test": {
+      "auroc": 0.9968999999999999,
+      "auprc": 0.9970929151352952,
+      "f1": 0.9516908212560387,
+      "recall": 0.985,
+      "precision": 0.9205607476635514,
+      "accuracy": 0.95
+    }
+  }
+}

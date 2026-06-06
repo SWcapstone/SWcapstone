@@ -1,0 +1,773 @@
+{
+  "args": {
+    "versions": [
+      "v1",
+      "v2",
+      "v3"
+    ],
+    "test_csv": [
+      "splits_eval/v1_balanced_test.csv",
+      "splits_eval/v2_balanced_test.csv",
+      "splits_eval/v3_balanced_test.csv"
+    ],
+    "gate_model": [
+      "models/v1_mnv3_small_gate.pt",
+      "models/v2_mnv3_small_gate.pt",
+      "models/v3_mnv3_small_gate.pt"
+    ],
+    "gate_calib": [
+      "models/v1_mnv3_small_calibrator.pkl",
+      "models/v2_mnv3_small_calibrator.pkl",
+      "models/v3_mnv3_small_calibrator.pkl"
+    ],
+    "patchcore_model": [
+      "models/v1_patchcore_r18_patchcore.pt",
+      "models/v2_patchcore_r18_patchcore.pt",
+      "models/v3_patchcore_r18_patchcore.pt"
+    ],
+    "data_root_old": "/app/data",
+    "data_root_new": "./data",
+    "t_low": 0.1,
+    "t_high": 0.5,
+    "device": "cpu",
+    "runs": 3,
+    "limit": 0,
+    "shuffle": false,
+    "seed": 42,
+    "output": "reports/benchmark_v1v2v3_balanced_mnv3small.json"
+  },
+  "results": [
+    {
+      "version": "v1",
+      "n_samples": 400,
+      "runs": 3,
+      "baseline": {
+        "per_run": [
+          {
+            "accuracy": 0.775,
+            "precision": 0.7291666666666666,
+            "recall": 0.875,
+            "f1": 0.7954545454545454,
+            "tp": 175,
+            "fp": 65,
+            "tn": 135,
+            "fn": 25,
+            "threshold": 3.5259462642669677,
+            "latency_ms": {
+              "n": 400,
+              "mean": 72.23751115379855,
+              "std": 17.136691863919637,
+              "median": 65.91425009537488,
+              "p95": 117.42786609102039,
+              "total": 28895.00446151942
+            },
+            "pipeline": "baseline_patchcore"
+          },
+          {
+            "accuracy": 0.775,
+            "precision": 0.7291666666666666,
+            "recall": 0.875,
+            "f1": 0.7954545454545454,
+            "tp": 175,
+            "fp": 65,
+            "tn": 135,
+            "fn": 25,
+            "threshold": 3.5259462642669677,
+            "latency_ms": {
+              "n": 400,
+              "mean": 71.09033187036403,
+              "std": 15.404451089439746,
+              "median": 65.80987491179258,
+              "p95": 114.5067744073458,
+              "total": 28436.13274814561
+            },
+            "pipeline": "baseline_patchcore"
+          },
+          {
+            "accuracy": 0.775,
+            "precision": 0.7291666666666666,
+            "recall": 0.875,
+            "f1": 0.7954545454545454,
+            "tp": 175,
+            "fp": 65,
+            "tn": 135,
+            "fn": 25,
+            "threshold": 3.5259462642669677,
+            "latency_ms": {
+              "n": 400,
+              "mean": 70.68893384071998,
+              "std": 19.485053790795327,
+              "median": 66.00406253710389,
+              "p95": 108.47285253694275,
+              "total": 28275.573536287993
+            },
+            "pipeline": "baseline_patchcore"
+          }
+        ],
+        "aggregate": {
+          "accuracy": {
+            "n": 3,
+            "mean": 0.775,
+            "std": 0.0,
+            "median": 0.775,
+            "p95": 0.775,
+            "total": 2.325
+          },
+          "precision": {
+            "n": 3,
+            "mean": 0.7291666666666666,
+            "std": 0.0,
+            "median": 0.7291666666666666,
+            "p95": 0.7291666666666666,
+            "total": 2.1875
+          },
+          "recall": {
+            "n": 3,
+            "mean": 0.875,
+            "std": 0.0,
+            "median": 0.875,
+            "p95": 0.875,
+            "total": 2.625
+          },
+          "f1": {
+            "n": 3,
+            "mean": 0.7954545454545454,
+            "std": 0.0,
+            "median": 0.7954545454545454,
+            "p95": 0.7954545454545454,
+            "total": 2.3863636363636362
+          },
+          "latency_ms_mean_per_image": {
+            "n": 3,
+            "mean": 71.33892562162752,
+            "std": 0.8036616598549734,
+            "median": 71.09033187036403,
+            "p95": 72.1227932254551,
+            "total": 214.01677686488256
+          },
+          "latency_ms_total": {
+            "n": 3,
+            "mean": 28535.57024865101,
+            "std": 321.46466394198933,
+            "median": 28436.13274814561,
+            "p95": 28849.11729018204,
+            "total": 85606.71074595302
+          },
+          "latency_ms_std_per_image_avg": 17.342065581384905
+        }
+      },
+      "gate_cascade": {
+        "per_run": [
+          {
+            "accuracy": 0.9975,
+            "precision": 1.0,
+            "recall": 0.995,
+            "f1": 0.9974937343358395,
+            "tp": 199,
+            "fp": 0,
+            "tn": 200,
+            "fn": 1,
+            "t_low": 0.1,
+            "t_high": 0.5,
+            "patchcore_threshold": 0.0,
+            "heatmap_call_rate": 0.0,
+            "latency_ms": {
+              "n": 400,
+              "mean": 31.035189690301195,
+              "std": 4.0323559206512565,
+              "median": 29.72702053375542,
+              "p95": 34.69316881382837,
+              "total": 12414.075876120478
+            },
+            "pipeline": "gate_cascade"
+          },
+          {
+            "accuracy": 0.9975,
+            "precision": 1.0,
+            "recall": 0.995,
+            "f1": 0.9974937343358395,
+            "tp": 199,
+            "fp": 0,
+            "tn": 200,
+            "fn": 1,
+            "t_low": 0.1,
+            "t_high": 0.5,
+            "patchcore_threshold": 0.0,
+            "heatmap_call_rate": 0.0,
+            "latency_ms": {
+              "n": 400,
+              "mean": 34.13652188668493,
+              "std": 9.88959037669267,
+              "median": 30.317104537971318,
+              "p95": 56.74498163862151,
+              "total": 13654.608754673973
+            },
+            "pipeline": "gate_cascade"
+          },
+          {
+            "accuracy": 0.9975,
+            "precision": 1.0,
+            "recall": 0.995,
+            "f1": 0.9974937343358395,
+            "tp": 199,
+            "fp": 0,
+            "tn": 200,
+            "fn": 1,
+            "t_low": 0.1,
+            "t_high": 0.5,
+            "patchcore_threshold": 0.0,
+            "heatmap_call_rate": 0.0,
+            "latency_ms": {
+              "n": 400,
+              "mean": 33.89880439033732,
+              "std": 10.0076473057708,
+              "median": 29.925062437541783,
+              "p95": 57.50685905804856,
+              "total": 13559.521756134927
+            },
+            "pipeline": "gate_cascade"
+          }
+        ],
+        "aggregate": {
+          "accuracy": {
+            "n": 3,
+            "mean": 0.9975,
+            "std": 0.0,
+            "median": 0.9975,
+            "p95": 0.9975,
+            "total": 2.9925
+          },
+          "precision": {
+            "n": 3,
+            "mean": 1.0,
+            "std": 0.0,
+            "median": 1.0,
+            "p95": 1.0,
+            "total": 3.0
+          },
+          "recall": {
+            "n": 3,
+            "mean": 0.995,
+            "std": 0.0,
+            "median": 0.995,
+            "p95": 0.995,
+            "total": 2.985
+          },
+          "f1": {
+            "n": 3,
+            "mean": 0.9974937343358395,
+            "std": 0.0,
+            "median": 0.9974937343358395,
+            "p95": 0.9974937343358395,
+            "total": 2.9924812030075185
+          },
+          "latency_ms_mean_per_image": {
+            "n": 3,
+            "mean": 33.023505322441146,
+            "std": 1.7260291688660772,
+            "median": 33.89880439033732,
+            "p95": 34.11275013705017,
+            "total": 99.07051596732344
+          },
+          "latency_ms_total": {
+            "n": 3,
+            "mean": 13209.402128976459,
+            "std": 690.4116675464309,
+            "median": 13559.521756134927,
+            "p95": 13645.100054820068,
+            "total": 39628.20638692938
+          },
+          "latency_ms_std_per_image_avg": 7.976531201038242
+        }
+      }
+    },
+    {
+      "version": "v2",
+      "n_samples": 400,
+      "runs": 3,
+      "baseline": {
+        "per_run": [
+          {
+            "accuracy": 0.76,
+            "precision": 0.7363636363636363,
+            "recall": 0.81,
+            "f1": 0.7714285714285715,
+            "tp": 162,
+            "fp": 58,
+            "tn": 142,
+            "fn": 38,
+            "threshold": 3.679505729675293,
+            "latency_ms": {
+              "n": 400,
+              "mean": 83.55587861326057,
+              "std": 20.90614354997827,
+              "median": 77.67877145670354,
+              "p95": 122.96742333564906,
+              "total": 33422.35144530423
+            },
+            "pipeline": "baseline_patchcore"
+          },
+          {
+            "accuracy": 0.76,
+            "precision": 0.7363636363636363,
+            "recall": 0.81,
+            "f1": 0.7714285714285715,
+            "tp": 162,
+            "fp": 58,
+            "tn": 142,
+            "fn": 38,
+            "threshold": 3.679505729675293,
+            "latency_ms": {
+              "n": 400,
+              "mean": 83.6422768846387,
+              "std": 20.19533433912669,
+              "median": 77.79197907075286,
+              "p95": 126.05488109402354,
+              "total": 33456.91075385548
+            },
+            "pipeline": "baseline_patchcore"
+          },
+          {
+            "accuracy": 0.76,
+            "precision": 0.7363636363636363,
+            "recall": 0.81,
+            "f1": 0.7714285714285715,
+            "tp": 162,
+            "fp": 58,
+            "tn": 142,
+            "fn": 38,
+            "threshold": 3.679505729675293,
+            "latency_ms": {
+              "n": 400,
+              "mean": 80.64205730916001,
+              "std": 13.834393089845866,
+              "median": 77.3109165020287,
+              "p95": 112.27526263101015,
+              "total": 32256.822923664004
+            },
+            "pipeline": "baseline_patchcore"
+          }
+        ],
+        "aggregate": {
+          "accuracy": {
+            "n": 3,
+            "mean": 0.7600000000000001,
+            "std": 1.3597399555105182e-16,
+            "median": 0.76,
+            "p95": 0.76,
+            "total": 2.2800000000000002
+          },
+          "precision": {
+            "n": 3,
+            "mean": 0.7363636363636363,
+            "std": 0.0,
+            "median": 0.7363636363636363,
+            "p95": 0.7363636363636363,
+            "total": 2.209090909090909
+          },
+          "recall": {
+            "n": 3,
+            "mean": 0.81,
+            "std": 0.0,
+            "median": 0.81,
+            "p95": 0.81,
+            "total": 2.43
+          },
+          "f1": {
+            "n": 3,
+            "mean": 0.7714285714285715,
+            "std": 0.0,
+            "median": 0.7714285714285715,
+            "p95": 0.7714285714285715,
+            "total": 2.3142857142857145
+          },
+          "latency_ms_mean_per_image": {
+            "n": 3,
+            "mean": 82.61340426901977,
+            "std": 1.707783005078661,
+            "median": 83.55587861326057,
+            "p95": 83.63363705750089,
+            "total": 247.8402128070593
+          },
+          "latency_ms_total": {
+            "n": 3,
+            "mean": 33045.3617076079,
+            "std": 683.1132020314644,
+            "median": 33422.35144530423,
+            "p95": 33453.45482300036,
+            "total": 99136.08512282372
+          },
+          "latency_ms_std_per_image_avg": 18.311956992983607
+        }
+      },
+      "gate_cascade": {
+        "per_run": [
+          {
+            "accuracy": 1.0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "tp": 200,
+            "fp": 0,
+            "tn": 200,
+            "fn": 0,
+            "t_low": 0.1,
+            "t_high": 0.5,
+            "patchcore_threshold": 3.3211373925209045,
+            "heatmap_call_rate": 0.0125,
+            "latency_ms": {
+              "n": 400,
+              "mean": 35.942184961168095,
+              "std": 13.70579587854322,
+              "median": 30.16714588738978,
+              "p95": 62.512581353075795,
+              "total": 14376.873984467238
+            },
+            "pipeline": "gate_cascade"
+          },
+          {
+            "accuracy": 1.0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "tp": 200,
+            "fp": 0,
+            "tn": 200,
+            "fn": 0,
+            "t_low": 0.1,
+            "t_high": 0.5,
+            "patchcore_threshold": 3.3211373925209045,
+            "heatmap_call_rate": 0.0125,
+            "latency_ms": {
+              "n": 400,
+              "mean": 36.92996917059645,
+              "std": 16.59551486872033,
+              "median": 30.63854097854346,
+              "p95": 63.298643729649456,
+              "total": 14771.98766823858
+            },
+            "pipeline": "gate_cascade"
+          },
+          {
+            "accuracy": 1.0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "tp": 200,
+            "fp": 0,
+            "tn": 200,
+            "fn": 0,
+            "t_low": 0.1,
+            "t_high": 0.5,
+            "patchcore_threshold": 3.3211373925209045,
+            "heatmap_call_rate": 0.0125,
+            "latency_ms": {
+              "n": 400,
+              "mean": 37.028065540944226,
+              "std": 20.79588495297615,
+              "median": 30.277916928753257,
+              "p95": 62.332278548274175,
+              "total": 14811.22621637769
+            },
+            "pipeline": "gate_cascade"
+          }
+        ],
+        "aggregate": {
+          "accuracy": {
+            "n": 3,
+            "mean": 1.0,
+            "std": 0.0,
+            "median": 1.0,
+            "p95": 1.0,
+            "total": 3.0
+          },
+          "precision": {
+            "n": 3,
+            "mean": 1.0,
+            "std": 0.0,
+            "median": 1.0,
+            "p95": 1.0,
+            "total": 3.0
+          },
+          "recall": {
+            "n": 3,
+            "mean": 1.0,
+            "std": 0.0,
+            "median": 1.0,
+            "p95": 1.0,
+            "total": 3.0
+          },
+          "f1": {
+            "n": 3,
+            "mean": 1.0,
+            "std": 0.0,
+            "median": 1.0,
+            "p95": 1.0,
+            "total": 3.0
+          },
+          "latency_ms_mean_per_image": {
+            "n": 3,
+            "mean": 36.63340655756959,
+            "std": 0.6006215080795273,
+            "median": 36.92996917059645,
+            "p95": 37.01825590390945,
+            "total": 109.90021967270877
+          },
+          "latency_ms_total": {
+            "n": 3,
+            "mean": 14653.362623027837,
+            "std": 240.2486032318109,
+            "median": 14771.98766823858,
+            "p95": 14807.30236156378,
+            "total": 43960.08786908351
+          },
+          "latency_ms_std_per_image_avg": 17.032398566746565
+        }
+      }
+    },
+    {
+      "version": "v3",
+      "n_samples": 400,
+      "runs": 3,
+      "baseline": {
+        "per_run": [
+          {
+            "accuracy": 0.6525,
+            "precision": 0.6055363321799307,
+            "recall": 0.875,
+            "f1": 0.7157464212678937,
+            "tp": 175,
+            "fp": 114,
+            "tn": 86,
+            "fn": 25,
+            "threshold": 3.487319796085358,
+            "latency_ms": {
+              "n": 400,
+              "mean": 94.70837103726808,
+              "std": 20.748311534788026,
+              "median": 88.54039548896253,
+              "p95": 139.47901651263234,
+              "total": 37883.34841490723
+            },
+            "pipeline": "baseline_patchcore"
+          },
+          {
+            "accuracy": 0.6525,
+            "precision": 0.6055363321799307,
+            "recall": 0.875,
+            "f1": 0.7157464212678937,
+            "tp": 175,
+            "fp": 114,
+            "tn": 86,
+            "fn": 25,
+            "threshold": 3.487319796085358,
+            "latency_ms": {
+              "n": 400,
+              "mean": 94.09734394808766,
+              "std": 18.386399437298802,
+              "median": 88.52497907355428,
+              "p95": 139.22893794951952,
+              "total": 37638.93757923506
+            },
+            "pipeline": "baseline_patchcore"
+          },
+          {
+            "accuracy": 0.6525,
+            "precision": 0.6055363321799307,
+            "recall": 0.875,
+            "f1": 0.7157464212678937,
+            "tp": 175,
+            "fp": 114,
+            "tn": 86,
+            "fn": 25,
+            "threshold": 3.487319796085358,
+            "latency_ms": {
+              "n": 400,
+              "mean": 96.4487356133759,
+              "std": 23.388783885462747,
+              "median": 88.93766649998724,
+              "p95": 146.90994629636398,
+              "total": 38579.49424535036
+            },
+            "pipeline": "baseline_patchcore"
+          }
+        ],
+        "aggregate": {
+          "accuracy": {
+            "n": 3,
+            "mean": 0.6525,
+            "std": 0.0,
+            "median": 0.6525,
+            "p95": 0.6525,
+            "total": 1.9575
+          },
+          "precision": {
+            "n": 3,
+            "mean": 0.6055363321799307,
+            "std": 0.0,
+            "median": 0.6055363321799307,
+            "p95": 0.6055363321799307,
+            "total": 1.8166089965397922
+          },
+          "recall": {
+            "n": 3,
+            "mean": 0.875,
+            "std": 0.0,
+            "median": 0.875,
+            "p95": 0.875,
+            "total": 2.625
+          },
+          "f1": {
+            "n": 3,
+            "mean": 0.7157464212678937,
+            "std": 0.0,
+            "median": 0.7157464212678937,
+            "p95": 0.7157464212678937,
+            "total": 2.147239263803681
+          },
+          "latency_ms_mean_per_image": {
+            "n": 3,
+            "mean": 95.08481686624388,
+            "std": 1.2200591327930448,
+            "median": 94.70837103726808,
+            "p95": 96.27469915576512,
+            "total": 285.25445059873164
+          },
+          "latency_ms_total": {
+            "n": 3,
+            "mean": 38033.92674649755,
+            "std": 488.0236531172179,
+            "median": 37883.34841490723,
+            "p95": 38509.87966230605,
+            "total": 114101.78023949265
+          },
+          "latency_ms_std_per_image_avg": 20.841164952516525
+        }
+      },
+      "gate_cascade": {
+        "per_run": [
+          {
+            "accuracy": 1.0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "tp": 200,
+            "fp": 0,
+            "tn": 200,
+            "fn": 0,
+            "t_low": 0.1,
+            "t_high": 0.5,
+            "patchcore_threshold": 4.049713611602783,
+            "heatmap_call_rate": 0.0025,
+            "latency_ms": {
+              "n": 400,
+              "mean": 34.67574653332122,
+              "std": 12.058701390910562,
+              "median": 30.44252109248191,
+              "p95": 59.3764079734683,
+              "total": 13870.298613328487
+            },
+            "pipeline": "gate_cascade"
+          },
+          {
+            "accuracy": 1.0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "tp": 200,
+            "fp": 0,
+            "tn": 200,
+            "fn": 0,
+            "t_low": 0.1,
+            "t_high": 0.5,
+            "patchcore_threshold": 4.049713611602783,
+            "heatmap_call_rate": 0.0025,
+            "latency_ms": {
+              "n": 400,
+              "mean": 34.119651067303494,
+              "std": 13.044903189935981,
+              "median": 29.928062460385263,
+              "p95": 57.97960786148905,
+              "total": 13647.860426921397
+            },
+            "pipeline": "gate_cascade"
+          },
+          {
+            "accuracy": 1.0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "tp": 200,
+            "fp": 0,
+            "tn": 200,
+            "fn": 0,
+            "t_low": 0.1,
+            "t_high": 0.5,
+            "patchcore_threshold": 4.049713611602783,
+            "heatmap_call_rate": 0.0025,
+            "latency_ms": {
+              "n": 400,
+              "mean": 34.37999987916555,
+              "std": 10.89089530947184,
+              "median": 30.01070802565664,
+              "p95": 58.130551956128286,
+              "total": 13751.999951666221
+            },
+            "pipeline": "gate_cascade"
+          }
+        ],
+        "aggregate": {
+          "accuracy": {
+            "n": 3,
+            "mean": 1.0,
+            "std": 0.0,
+            "median": 1.0,
+            "p95": 1.0,
+            "total": 3.0
+          },
+          "precision": {
+            "n": 3,
+            "mean": 1.0,
+            "std": 0.0,
+            "median": 1.0,
+            "p95": 1.0,
+            "total": 3.0
+          },
+          "recall": {
+            "n": 3,
+            "mean": 1.0,
+            "std": 0.0,
+            "median": 1.0,
+            "p95": 1.0,
+            "total": 3.0
+          },
+          "f1": {
+            "n": 3,
+            "mean": 1.0,
+            "std": 0.0,
+            "median": 1.0,
+            "p95": 1.0,
+            "total": 3.0
+          },
+          "latency_ms_mean_per_image": {
+            "n": 3,
+            "mean": 34.39179915993009,
+            "std": 0.2782354382556029,
+            "median": 34.37999987916555,
+            "p95": 34.64617186790565,
+            "total": 103.17539747979026
+          },
+          "latency_ms_total": {
+            "n": 3,
+            "mean": 13756.719663972035,
+            "std": 111.29417530224114,
+            "median": 13751.999951666221,
+            "p95": 13858.46874716226,
+            "total": 41270.158991916105
+          },
+          "latency_ms_std_per_image_avg": 11.998166630106127
+        }
+      }
+    }
+  ]
+}

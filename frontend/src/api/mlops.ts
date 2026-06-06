@@ -74,6 +74,7 @@ type BackendTrainingStatus = {
   message?: string;
   epoch?: number;
   metrics?: Record<string, number>;
+  stop_requested?: boolean;
 };
 
 type FeedbackMaterializeItem = Pick<FeedbackItem, "id" | "image_url" | "label" | "feedback_type">;
@@ -152,11 +153,6 @@ function readLocalDatasets(): DatasetVersion[] {
   }
 }
 
-function writeLocalDatasets(datasets: DatasetVersion[]) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(LOCAL_DATASETS_KEY, JSON.stringify(datasets));
-}
-
 function readLocalRecipes(): TrainingRecipe[] {
   if (typeof window === "undefined") return [];
   try {
@@ -212,33 +208,6 @@ function slugify(value: string) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
   return slug || "custom-recipe";
-}
-
-function recordMaterializedDataset(
-  payload: {
-    mode: "append" | "new";
-    targetDatasetId?: string;
-    datasetName?: string;
-  },
-  sampleCount: number
-) {
-  if (payload.mode !== "new") return;
-
-  const id = `DATA-FEEDBACK-${new Date().toISOString().replace(/[-:TZ.]/g, "").slice(0, 14)}`;
-  const localDataset: DatasetVersion = {
-    id,
-    name: payload.datasetName || "Feedback Materialized Dataset",
-    status: "prepared",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    source_dataset_id: payload.targetDatasetId ?? null,
-    sample_count: sampleCount,
-    feedback_count: sampleCount,
-    notes: "Frontend fallback dataset generated from feedback images.",
-    samples: [],
-  };
-
-  writeLocalDatasets([localDataset, ...readLocalDatasets().filter((dataset) => dataset.id !== id)]);
 }
 
 function createDeploymentFallback(dashboard: DashboardResponse): DeploymentState {
@@ -377,6 +346,11 @@ function mergeTrainingStatus(runs: TrainingRun[], trainingStatus: BackendTrainin
   const normalizedRuns = normalizeRuns(runs);
 
   if (!trainingStatus?.is_running) {
+    if (trainingStatus?.message === "STOPPED" || trainingStatus?.message?.startsWith("ERROR:")) {
+      writeLocalTraining(null);
+      return normalizedRuns;
+    }
+
     const localTraining = readLocalTraining();
     if (localTraining && hasCompletedAfterLocalTraining(normalizedRuns, localTraining)) {
       writeLocalTraining(null);
@@ -396,11 +370,11 @@ function mergeTrainingStatus(runs: TrainingRun[], trainingStatus: BackendTrainin
   const activeRun: TrainingRun = {
     ...existing,
     id: existing?.id ?? localTraining?.id ?? "LIVE-TRAINING",
-    status: "running",
+    status: trainingStatus.stop_requested ? "stopping" : "running",
     progress: Math.min(100, Math.max(0, trainingStatus.progress ?? 0)),
     current_step: trainingStatus.message ?? "TRAINING",
     final_metrics: trainingStatus.metrics,
-    epochs: trainingStatus.epoch,
+    epochs: existing?.epochs ?? localTraining?.epochs ?? trainingStatus.epoch,
     architecture: existing?.architecture ?? localTraining?.architecture ?? "ARCH-GATE-EFF",
     dataset_version_id: existing?.dataset_version_id ?? localTraining?.datasetVersionId,
     base_model_version_id: existing?.base_model_version_id ?? localTraining?.baseModelVersionId,
@@ -524,17 +498,6 @@ export function uploadDatasetFiles(payload: {
   return request("/mlops/datasets/upload", { method: "POST", body: form });
 }
 
-function feedbackItemToFile(item: FeedbackMaterializeItem) {
-  const content = JSON.stringify({
-    id: item.id,
-    label: item.label,
-    feedback_type: item.feedback_type,
-  });
-  return new File([content], `${item.id}.json`, {
-    type: "application/json",
-  });
-}
-
 export async function materializeFeedbackDataset(payload: {
   mode: "append" | "new";
   targetDatasetId?: string;
@@ -542,32 +505,17 @@ export async function materializeFeedbackDataset(payload: {
   feedbackItemIds?: string[];
   feedbackItems?: FeedbackMaterializeItem[];
 }) {
-  if (!payload.feedbackItems?.length) {
-    return await request("/mlops/datasets/from-feedback", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        mode: payload.mode,
-        target_dataset_id: payload.targetDatasetId || null,
-        dataset_name: payload.datasetName || null,
-        feedback_item_ids: payload.feedbackItemIds || [],
-      }),
-    });
-  }
-
-  const files = payload.feedbackItems.map(feedbackItemToFile);
-  const response = await uploadDatasetFiles({
-    files,
-    label: "feedback",
-    sourceType: "feedback_materialized",
-    line: "",
-    comment: `Materialized ${files.length} feedback items`,
-    datasetMode: payload.mode,
-    datasetVersionId: payload.targetDatasetId,
-    datasetName: payload.datasetName,
+  const feedbackItemIds = payload.feedbackItemIds ?? payload.feedbackItems?.map((item) => item.id) ?? [];
+  return await request("/mlops/datasets/from-feedback", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      mode: payload.mode,
+      target_dataset_id: payload.targetDatasetId || null,
+      dataset_name: payload.datasetName || null,
+      feedback_item_ids: feedbackItemIds,
+    }),
   });
-  recordMaterializedDataset(payload, files.length);
-  return response;
 }
 
 export function uploadArchitecture(payload: {
@@ -616,6 +564,7 @@ export function createTrainingRun(payload: {
       learning_rate: payload.learningRate || 0.001,
       optimizer: payload.optimizer || "Adam",
       augmentation: payload.augmentation !== undefined ? payload.augmentation : true,
+      dataset_version_id: payload.datasetVersionId || null,
     }),
   }).then((response) => {
     writeLocalTraining({
@@ -650,7 +599,13 @@ export function deployModel(payload: {
   });
 }
 
-export async function promoteModel(modelVersionId: string, targetStatus: string, gateFile?: string, heatmapFile?: string) {
+export async function promoteModel(
+  modelVersionId: string,
+  targetStatus: string,
+  gateFile?: string,
+  heatmapFile?: string,
+  ensembleEnabled = true
+) {
   if (targetStatus !== "production") {
     writeLocalDeployment({
       staging_model_id: modelVersionId,
@@ -665,7 +620,7 @@ export async function promoteModel(modelVersionId: string, targetStatus: string,
     model_id: modelVersionId,
     gate_file: gateFile,
     heatmap_file: heatmapFile,
-    ensemble_enabled: true,
+    ensemble_enabled: ensembleEnabled,
   });
   writeLocalDeployment({
     production_model_id: modelVersionId,
@@ -689,11 +644,18 @@ export async function startCanary(modelVersionId: string, line?: string) {
   return { model_version: { id: modelVersionId, status: "canary" } as ModelVersion, local_only: true };
 }
 
-export async function rollbackDeployment(modelVersionId?: string) {
+export async function rollbackDeployment(
+  modelVersionId?: string,
+  gateFile?: string,
+  heatmapFile?: string,
+  ensembleEnabled = true
+) {
   const rollbackModelId = modelVersionId || readLocalDeployment().previous_production_model_id || "MODEL-R3-FINAL";
   const response = await deployModel({
     model_id: rollbackModelId,
-    ensemble_enabled: true,
+    gate_file: gateFile,
+    heatmap_file: heatmapFile,
+    ensemble_enabled: ensembleEnabled,
   });
   writeLocalDeployment({
     production_model_id: rollbackModelId,
@@ -707,7 +669,7 @@ export async function rollbackDeployment(modelVersionId?: string) {
 
 export function stopTrainingRun(runId?: string) {
   void runId;
-  return request("/mlops/training/status");
+  return request("/mlops/training/stop", { method: "POST" });
 }
 
 export function saveTrainingRecipe(payload: TrainingRecipe) {
