@@ -4,6 +4,8 @@ import uuid
 import torch
 import logging
 import asyncio
+import csv
+import random
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Callable
@@ -17,6 +19,152 @@ logger = logging.getLogger("steelvision.train")
 
 class TrainingStoppedError(RuntimeError):
     pass
+
+GATE_DATASET_SPLITS = {
+    "data-v3-production": ("round3_train_gate_mix.csv", "round3_val_gate.csv"),
+}
+
+
+def _count_labels(csv_path: Path) -> tuple[int, int]:
+    n_normal = 0
+    n_anomaly = 0
+    with open(csv_path, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            if row.get("label") == "anomaly":
+                n_anomaly += 1
+            else:
+                n_normal += 1
+    return n_normal, n_anomaly
+
+
+def _positive_int(value: Any) -> Optional[int]:
+    if value in (None, "", 0, "0"):
+        return None
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        return None
+    return parsed if parsed > 0 else None
+
+
+def _balanced_subset_csv(
+    csv_path: Path,
+    max_samples: Optional[int],
+    generated_dir: Path,
+    seed: int,
+) -> tuple[Path, int, int]:
+    n_normal, n_anomaly = _count_labels(csv_path)
+    total = n_normal + n_anomaly
+    if not max_samples or max_samples >= total:
+        return csv_path, n_normal, n_anomaly
+
+    max_samples = max(2, max_samples)
+    with open(csv_path, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        fieldnames = reader.fieldnames or ["path", "dataset_type", "defect_type", "label", "round", "split"]
+        normal_rows = []
+        anomaly_rows = []
+        for row in reader:
+            if row.get("label") == "anomaly":
+                anomaly_rows.append(row)
+            else:
+                normal_rows.append(row)
+
+    rng = random.Random(seed)
+    rng.shuffle(normal_rows)
+    rng.shuffle(anomaly_rows)
+
+    per_class = max(1, max_samples // 2)
+    normal_take = min(len(normal_rows), per_class)
+    anomaly_take = min(len(anomaly_rows), per_class)
+    selected = normal_rows[:normal_take] + anomaly_rows[:anomaly_take]
+    remaining = max_samples - len(selected)
+    if remaining > 0:
+        leftovers = normal_rows[normal_take:] + anomaly_rows[anomaly_take:]
+        rng.shuffle(leftovers)
+        selected.extend(leftovers[:remaining])
+
+    rng.shuffle(selected)
+    generated_dir.mkdir(parents=True, exist_ok=True)
+    subset_path = generated_dir / f"{csv_path.stem}-subset-{len(selected)}-seed{seed}.csv"
+    with open(subset_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(selected)
+
+    return subset_path, sum(1 for row in selected if row.get("label") != "anomaly"), sum(1 for row in selected if row.get("label") == "anomaly")
+
+
+def _csv_with_existing_paths(csv_path: Path, generated_dir: Path) -> tuple[Path, int]:
+    with open(csv_path, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        fieldnames = reader.fieldnames or ["path", "dataset_type", "defect_type", "label", "round", "split"]
+        rows = list(reader)
+
+    kept_rows = []
+    skipped_feedback = []
+    missing_required = []
+    for row in rows:
+        sample_path = Path(row.get("path", ""))
+        if sample_path.exists():
+            kept_rows.append(row)
+            continue
+
+        if row.get("dataset_type") == "feedback":
+            skipped_feedback.append(row)
+            continue
+
+        missing_required.append(str(sample_path))
+
+    if missing_required:
+        examples = ", ".join(missing_required[:5])
+        raise FileNotFoundError(
+            f"{csv_path.name} references missing source image files: {examples}"
+        )
+
+    if not skipped_feedback:
+        return csv_path, 0
+
+    generated_dir.mkdir(parents=True, exist_ok=True)
+    sanitized_path = generated_dir / f"{csv_path.stem}-existing-feedback.csv"
+    with open(sanitized_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(kept_rows)
+
+    logger.warning(
+        "Skipped %d missing feedback image rows from %s during training.",
+        len(skipped_feedback),
+        csv_path.name,
+    )
+    return sanitized_path, len(skipped_feedback)
+
+
+def _resolve_gate_csvs(splits_dir: Path, dataset_id: str) -> tuple[Path, Path]:
+    ds_id = (dataset_id or "round3_train_gate_mix").lower()
+    if ds_id in GATE_DATASET_SPLITS:
+        train_name, val_name = GATE_DATASET_SPLITS[ds_id]
+        return splits_dir / train_name, splits_dir / val_name
+
+    train_csv = splits_dir / f"{ds_id}.csv"
+    if not train_csv.exists():
+        train_csv = splits_dir / "round3_train_gate_mix.csv"
+
+    val_candidates = [
+        splits_dir / f"{ds_id}_val.csv",
+        splits_dir / f"{ds_id}-val.csv",
+    ]
+    inferred_val = Path(str(train_csv).replace("train", "val"))
+    if inferred_val != train_csv:
+        val_candidates.append(inferred_val)
+
+    val_csv = next((candidate for candidate in val_candidates if candidate.exists()), None)
+    if val_csv is None:
+        val_csv = splits_dir / "round3_val_gate.csv"
+
+    return train_csv, val_csv
+
 
 class TrainEngine:
     def __init__(self, s3_utils=None, state_manager=None):
@@ -35,19 +183,59 @@ class TrainEngine:
         try:
             # 1. Setup Data
             splits_dir = Path("/app/splits")
-            # Use materialized dataset if provided, else fallback to default
-            ds_id = req.get("dataset_version_id", "round3_train_gate_mix").lower()
-            train_csv = splits_dir / f"{ds_id}.csv"
-            
-            if not train_csv.exists():
-                train_csv = splits_dir / "round3_train_gate_mix.csv"
-            
-            # Simple heuristic for validation set
-            val_csv = Path(str(train_csv).replace("train", "val"))
-            if not val_csv.exists():
-                val_csv = splits_dir / "round3_val_gate.csv"
+            train_csv, val_csv = _resolve_gate_csvs(
+                splits_dir, req.get("dataset_version_id", "round3_train_gate_mix")
+            )
+            train_csv, skipped_train_feedback = _csv_with_existing_paths(
+                train_csv, splits_dir / "_generated"
+            )
+            val_csv, skipped_val_feedback = _csv_with_existing_paths(
+                val_csv, splits_dir / "_generated"
+            )
 
-            status_callback(progress=5, message="PREPARING DATASET")
+            n_normal, n_anomaly = _count_labels(train_csv)
+            if n_normal == 0 or n_anomaly == 0:
+                raise ValueError(
+                    f"Gate training dataset must include both classes: "
+                    f"{train_csv.name} has normal={n_normal}, anomaly={n_anomaly}"
+                )
+            subset_seed = int(req.get("subset_seed") or 42)
+            max_train_samples = _positive_int(req.get("max_train_samples"))
+            max_val_samples = _positive_int(req.get("max_val_samples"))
+            if max_train_samples:
+                train_csv, n_normal, n_anomaly = _balanced_subset_csv(
+                    train_csv,
+                    max_train_samples,
+                    splits_dir / "_generated",
+                    subset_seed,
+                )
+
+            val_normal, val_anomaly = _count_labels(val_csv)
+            if max_val_samples:
+                val_csv, val_normal, val_anomaly = _balanced_subset_csv(
+                    val_csv,
+                    max_val_samples,
+                    splits_dir / "_generated",
+                    subset_seed,
+                )
+
+            logger.info(
+                "Gate training dataset selected: %s (normal=%d, anomaly=%d), val=%s (normal=%d, anomaly=%d)",
+                train_csv.name,
+                n_normal,
+                n_anomaly,
+                val_csv.name,
+                val_normal,
+                val_anomaly,
+            )
+            if skipped_train_feedback or skipped_val_feedback:
+                logger.info(
+                    "Training will skip missing feedback images: train=%d, val=%d",
+                    skipped_train_feedback,
+                    skipped_val_feedback,
+                )
+
+            status_callback(progress=5, message=f"PREPARING DATASET ({n_normal + n_anomaly} TRAIN)")
             
             batch_size = req.get("batch_size", 32)
             use_aug = req.get("augmentation", True)
@@ -78,6 +266,32 @@ class TrainEngine:
             status_callback(progress=10, message=f"STARTING PYTORCH ({backbone})")
             
             def _on_epoch(record):
+                if self.stop_requested:
+                    status_callback(progress=0, message="STOPPING", epoch=int(record.get("epoch", 0)))
+                    return
+
+                if record.get("event") == "batch":
+                    epoch = int(record.get("epoch", 0))
+                    batch = int(record.get("batch", 0))
+                    total_batches = max(int(record.get("total_batches", 1)), 1)
+                    phase = str(record.get("phase", "train")).upper()
+                    phase_offset = 0.0 if phase == "TRAIN" else 0.82
+                    phase_span = 0.82 if phase == "TRAIN" else 0.18
+                    epoch_fraction = max(epoch - 1, 0) + phase_offset + phase_span * (batch / total_batches)
+                    progress = min(89, 10 + round((epoch_fraction / max(config.epochs, 1)) * 80))
+                    status_callback(
+                        progress=progress,
+                        message=f"EPOCH {epoch}/{config.epochs} {phase} {batch}/{total_batches}",
+                        epoch=epoch,
+                        metrics={
+                            "batch": batch,
+                            "total_batches": total_batches,
+                            "batch_loss": record.get("batch_loss", 0),
+                            "running_loss": record.get("running_loss", 0),
+                        },
+                    )
+                    return
+
                 epoch = int(record.get("epoch", 0))
                 progress = min(89, 10 + round((epoch / max(config.epochs, 1)) * 80))
                 status_callback(
@@ -213,5 +427,5 @@ class TrainEngine:
             self.stop_requested = False
 
     def stop(self):
-        if self.is_running:
-            self.stop_requested = True
+        self.stop_requested = True
+        return self.is_running

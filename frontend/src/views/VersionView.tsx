@@ -26,6 +26,7 @@ export function VersionView({
   }, [dashboard.active_dataset_id, dashboard.dataset_versions, targetDatasetId]);
 
   const targetDataset = dashboard.dataset_versions.find((dataset) => dataset.id === targetDatasetId);
+  const targetDatasetIsLocked = targetDataset?.status === "locked";
   const labeledFeedbackItems = dashboard.feedback_items.filter((item) => item.label === "normal" || item.label === "anomaly");
   const appliedFeedbackIds = new Set(targetDataset?.materialized_feedback_item_ids ?? []);
   const pendingFeedbackItems = labeledFeedbackItems.filter((item) => !appliedFeedbackIds.has(item.id));
@@ -40,14 +41,25 @@ export function VersionView({
     try {
       setBusy(true);
       setMessage("");
-      await materializeFeedbackDataset({
+      const response = await materializeFeedbackDataset({
         mode,
         targetDatasetId,
         datasetName: mode === "new" ? datasetName : undefined,
         feedbackItemIds: selectedFeedbackItems.map((item) => item.id),
         feedbackItems: selectedFeedbackItems,
       });
-      setMessage(mode === "new" ? "라벨 확정 피드백으로 새 데이터셋을 만들었습니다." : "신규 피드백을 기존 데이터셋에 반영했습니다.");
+      const materializedResult = response as { dataset_id?: string; mode?: string; skipped_feedback_item_ids?: string[] };
+      if (materializedResult.dataset_id) setTargetDatasetId(materializedResult.dataset_id);
+      const materializedMode = materializedResult.mode;
+      const skippedCount = materializedResult.skipped_feedback_item_ids?.length ?? 0;
+      const suffix = skippedCount ? ` 누락된 피드백 ${skippedCount}개는 제외했습니다.` : "";
+      setMessage(
+        materializedMode === "derived"
+          ? `원본 데이터셋은 유지하고 피드백이 포함된 새 학습 데이터셋을 만들었습니다.${suffix}`
+          : mode === "new"
+            ? `라벨 확정 피드백으로 새 데이터셋을 만들었습니다.${suffix}`
+            : `신규 피드백을 기존 데이터셋에 반영했습니다.${suffix}`
+      );
       await onRefresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "피드백 데이터셋 처리에 실패했습니다.");
@@ -126,7 +138,7 @@ export function VersionView({
               </label>
               <div className="grid grid-cols-[1.2fr_.8fr] gap-4">
                 <button onClick={() => handleFeedbackMaterialize("append")} disabled={busy || !pendingFeedbackItems.length} className="ui-button ui-button-primary">
-                  신규 피드백 기존 데이터셋에 반영
+                  {targetDatasetIsLocked ? "피드백 포함 새 학습 데이터셋 생성" : "신규 피드백 기존 데이터셋에 반영"}
                 </button>
                 <button onClick={() => handleFeedbackMaterialize("new")} disabled={busy || !labeledFeedbackItems.length} className="ui-button ui-button-neutral">
                   새 데이터셋으로 저장

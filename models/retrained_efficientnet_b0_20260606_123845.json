@@ -1,0 +1,32 @@
+{
+  "id": "MODEL-7C6345",
+  "name": "Retrained efficientnet_b0",
+  "architecture": "ARCH-GATE-EFF",
+  "params": {
+    "model_name": "2026-06-06 21:36:15 KST",
+    "architecture": "ARCH-GATE-EFF",
+    "epochs": 3,
+    "batch_size": 8,
+    "learning_rate": 0.01,
+    "optimizer": "AdamW",
+    "augmentation": true,
+    "dataset_version_id": "DATA-V3-PRODUCTION",
+    "max_train_samples": 200,
+    "max_val_samples": 80,
+    "subset_seed": 42
+  },
+  "metrics": {
+    "epoch": 3,
+    "train_loss": 0.4098657914996147,
+    "val_loss": 0.256511514633894,
+    "val_acc": 0.875,
+    "val_recall": 0.825,
+    "val_precision": 0.9166666666666666,
+    "val_f1": 0.8684210526315789,
+    "lr": 1e-06,
+    "time_s": 39.88672733306885
+  },
+  "completed_at": "2026-06-06T12:38:45.994615",
+  "filename": "retrained_efficientnet_b0_20260606_123845.pt",
+  "kind": "gate"
+}

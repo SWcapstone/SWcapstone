@@ -94,7 +94,9 @@ def _resolve_device(device: Optional[str] = None) -> torch.device:
 # ---------------------------------------------------------------------------
 # Utility: auto pos_weight
 # ---------------------------------------------------------------------------
-def compute_pos_weight(loader: DataLoader) -> float:
+def compute_pos_weight(
+    loader: DataLoader, should_stop: Optional[Callable[[], bool]] = None
+) -> float:
     """Compute pos_weight = n_negative / n_positive from a DataLoader.
 
     Assumes the loader yields ``(images, labels)`` where labels are
@@ -105,7 +107,10 @@ def compute_pos_weight(loader: DataLoader) -> float:
     """
     n_pos = 0
     n_neg = 0
-    for _, labels in loader:
+    for batch_idx, (_, labels) in enumerate(loader):
+        if should_stop is not None and should_stop():
+            logger.info("Training stop requested while scanning labels at batch %d.", batch_idx + 1)
+            break
         labels_np = labels.cpu().numpy().flatten()
         n_pos += int((labels_np == 1).sum())
         n_neg += int((labels_np == 0).sum())
@@ -214,7 +219,7 @@ class GateModel:
         train_loader: DataLoader,
         val_loader: DataLoader,
         config: Optional[GateTrainConfig] = None,
-        progress_callback: Optional[Callable[[Dict[str, float]], None]] = None,
+        progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
         should_stop: Optional[Callable[[], bool]] = None,
     ) -> List[Dict[str, float]]:
         """Train the gate model.
@@ -241,11 +246,22 @@ class GateModel:
         torch.manual_seed(config.seed)
         np.random.seed(config.seed)
 
+        history: List[Dict[str, float]] = []
+
         # -- pos_weight ------------------------------------------------------
+        if should_stop is not None and should_stop():
+            logger.info("Training stopped before pos_weight scan.")
+            return history
+
         if config.pos_weight is not None:
             pw = config.pos_weight
         else:
-            pw = compute_pos_weight(train_loader)
+            pw = compute_pos_weight(train_loader, should_stop=should_stop)
+
+        if should_stop is not None and should_stop():
+            logger.info("Training stopped after pos_weight scan.")
+            return history
+
         pos_weight_tensor = torch.tensor([pw], dtype=torch.float32, device=self.device)
         criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight_tensor)
 
@@ -267,8 +283,6 @@ class GateModel:
         best_val_loss = float("inf")
         best_state = None
         patience_counter = 0
-
-        history: List[Dict[str, float]] = []
 
         # -- optional backbone freeze at start ------------------------------
         if config.freeze_backbone_epochs > 0:
@@ -306,7 +320,15 @@ class GateModel:
 
             # ---- train phase ------------------------------------------------
             train_loss = self._train_one_epoch(
-                train_loader, criterion, optimizer, scaler, amp_device_type, config, should_stop
+                train_loader,
+                criterion,
+                optimizer,
+                scaler,
+                amp_device_type,
+                config,
+                should_stop,
+                progress_callback,
+                epoch,
             )
 
             if should_stop is not None and should_stop():
@@ -314,7 +336,20 @@ class GateModel:
                 break
 
             # ---- val phase --------------------------------------------------
-            val_metrics = self._validate(val_loader, criterion, amp_device_type)
+            val_metrics = self._validate(
+                val_loader,
+                criterion,
+                amp_device_type,
+                should_stop,
+                progress_callback,
+                epoch,
+                config.epochs,
+            )
+
+            if should_stop is not None and should_stop():
+                logger.info("Training stopped during epoch %d validation phase.", epoch)
+                break
+
             val_loss = val_metrics["loss"]
 
             scheduler.step()
@@ -380,6 +415,8 @@ class GateModel:
         amp_device_type: str,
         config: GateTrainConfig,
         should_stop: Optional[Callable[[], bool]] = None,
+        progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
+        epoch: int = 0,
     ) -> float:
         self.model.train()
         running_loss = 0.0
@@ -410,6 +447,18 @@ class GateModel:
 
             running_loss += loss.item()
             n_batches += 1
+            if progress_callback is not None:
+                progress_callback(
+                    {
+                        "event": "batch",
+                        "phase": "train",
+                        "epoch": epoch,
+                        "batch": batch_idx + 1,
+                        "total_batches": len(loader),
+                        "batch_loss": float(loss.item()),
+                        "running_loss": float(running_loss / max(n_batches, 1)),
+                    }
+                )
 
             if (batch_idx + 1) % config.log_interval == 0:
                 logger.debug(
@@ -427,6 +476,10 @@ class GateModel:
         loader: DataLoader,
         criterion: nn.Module,
         amp_device_type: str,
+        should_stop: Optional[Callable[[], bool]] = None,
+        progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
+        epoch: int = 0,
+        total_epochs: int = 0,
     ) -> Dict[str, float]:
         self.model.eval()
         running_loss = 0.0
@@ -434,7 +487,11 @@ class GateModel:
         all_labels: List[np.ndarray] = []
         all_preds: List[np.ndarray] = []
 
-        for images, labels in loader:
+        for batch_idx, (images, labels) in enumerate(loader):
+            if should_stop is not None and should_stop():
+                logger.info("Validation stop requested at batch %d.", batch_idx + 1)
+                break
+
             images = images.to(self.device, non_blocking=True)
             labels_dev = labels.to(self.device, non_blocking=True).float().unsqueeze(1)
 
@@ -442,10 +499,32 @@ class GateModel:
             loss = criterion(logits, labels_dev)
             running_loss += loss.item()
             n_batches += 1
+            if progress_callback is not None:
+                progress_callback(
+                    {
+                        "event": "batch",
+                        "phase": "val",
+                        "epoch": epoch,
+                        "total_epochs": total_epochs,
+                        "batch": batch_idx + 1,
+                        "total_batches": len(loader),
+                        "batch_loss": float(loss.item()),
+                        "running_loss": float(running_loss / max(n_batches, 1)),
+                    }
+                )
 
             probs = torch.sigmoid(logits).cpu().numpy().flatten()
             all_preds.append(probs)
             all_labels.append(labels.numpy().flatten())
+
+        if not all_labels or not all_preds:
+            return {
+                "loss": running_loss / max(n_batches, 1),
+                "acc": 0.0,
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+            }
 
         all_labels_np = np.concatenate(all_labels)
         all_preds_np = np.concatenate(all_preds)

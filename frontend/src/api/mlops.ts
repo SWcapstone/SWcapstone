@@ -89,6 +89,8 @@ type LocalTraining = {
   datasetVersionId?: string;
   baseModelVersionId?: string | null;
   recipeId?: string;
+  maxTrainSamples?: number | null;
+  maxValSamples?: number | null;
 };
 
 function formatKoreaTimestamp(date = new Date()) {
@@ -296,6 +298,7 @@ function createOptimisticTrainingRun(training: LocalTraining | null): TrainingRu
     dataset_version_id: training.datasetVersionId,
     base_model_version_id: training.baseModelVersionId,
     recipe_id: training.recipeId,
+    sample_count: training.maxTrainSamples ?? undefined,
     architecture: training.architecture,
     progress,
     current_step: `TRAINING EPOCH ${epoch}`,
@@ -506,7 +509,12 @@ export async function materializeFeedbackDataset(payload: {
   feedbackItems?: FeedbackMaterializeItem[];
 }) {
   const feedbackItemIds = payload.feedbackItemIds ?? payload.feedbackItems?.map((item) => item.id) ?? [];
-  return await request("/mlops/datasets/from-feedback", {
+  return await request<{
+    message: string;
+    dataset_id: string;
+    mode: "append" | "new" | "derived";
+    skipped_feedback_item_ids?: string[];
+  }>("/mlops/datasets/from-feedback", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -547,6 +555,8 @@ export function createTrainingRun(payload: {
   heatmapArchitectureId?: string;
   trainStrategy?: string;
   notes?: string;
+  maxTrainSamples?: number | null;
+  maxValSamples?: number | null;
 }) {
   const startedAt = new Date().toISOString();
   const modelName = payload.modelName?.trim() || formatKoreaTimestamp();
@@ -565,6 +575,8 @@ export function createTrainingRun(payload: {
       optimizer: payload.optimizer || "Adam",
       augmentation: payload.augmentation !== undefined ? payload.augmentation : true,
       dataset_version_id: payload.datasetVersionId || null,
+      max_train_samples: payload.maxTrainSamples || null,
+      max_val_samples: payload.maxValSamples || null,
     }),
   }).then((response) => {
     writeLocalTraining({
@@ -577,6 +589,8 @@ export function createTrainingRun(payload: {
       datasetVersionId: payload.datasetVersionId,
       baseModelVersionId: payload.baseModelVersionId,
       recipeId: payload.recipeId,
+      maxTrainSamples: payload.maxTrainSamples ?? null,
+      maxValSamples: payload.maxValSamples ?? null,
     });
     return response;
   });

@@ -1,0 +1,32 @@
+{
+  "id": "MODEL-BEA20F",
+  "name": "Retrained efficientnet_b0",
+  "architecture": "ARCH-GATE-EFF",
+  "params": {
+    "model_name": "2026-06-06 22:01:27 KST",
+    "architecture": "ARCH-GATE-EFF",
+    "epochs": 1,
+    "batch_size": 8,
+    "learning_rate": 0.01,
+    "optimizer": "AdamW",
+    "augmentation": true,
+    "dataset_version_id": "DATA-MIX-FF734E",
+    "max_train_samples": 200,
+    "max_val_samples": 80,
+    "subset_seed": 42
+  },
+  "metrics": {
+    "epoch": 1,
+    "train_loss": 0.5015984025597572,
+    "val_loss": 0.4563432276248932,
+    "val_acc": 0.7625,
+    "val_recall": 0.9,
+    "val_precision": 0.7058823529411765,
+    "val_f1": 0.7912087912087913,
+    "lr": 1e-06,
+    "time_s": 21.64842391014099
+  },
+  "completed_at": "2026-06-06T13:02:28.864719",
+  "filename": "retrained_efficientnet_b0_20260606_130228.pt",
+  "kind": "gate"
+}

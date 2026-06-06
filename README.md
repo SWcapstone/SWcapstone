@@ -16,6 +16,41 @@
 cd C:\OSYSTUDY\260423\SWcapstone
 ```
 
+Round 3 Pool 데이터로 학습까지 확인하려면 원본 이미지 데이터를 먼저 프로젝트 루트의 `data` 폴더에 복사합니다. Docker 실행 시 로컬 `./data`가 컨테이너의 `/app/data`로 연결되므로, CSV에 기록된 `/app/data/...` 경로와 같은 구조여야 합니다.
+
+```text
+data/
+  dataset_type/
+    MVTec/
+      defect_type/
+        grid/
+          normal/
+            198.png
+    Kolektor/
+      defect_type/
+        surface_defect/
+          normal/
+          anomaly/
+    NEU/
+      defect_type/
+        Scratches/
+          anomaly/
+        Patches/
+          anomaly/
+        Pitted/
+          anomaly/
+        Rolled/
+          anomaly/
+```
+
+예를 들어 아래 파일이 실제로 존재해야 합니다.
+
+```text
+C:\OSYSTUDY\260423\SWcapstone\data\dataset_type\MVTec\defect_type\grid\normal\198.png
+```
+
+새 폴더에서 검증하는 경우에도 같은 구조로 `C:\OSYSTUDY\260606\SWcapstone\data\dataset_type\...` 아래에 데이터를 복사한 뒤 빌드합니다.
+
 이미지를 빌드합니다.
 
 ```powershell

@@ -35,7 +35,7 @@ from torchvision import transforms, models
 from src.heatmap_model import PatchCoreModel
 from src.s3_utils import S3Utils
 from src.device_utils import get_device
-from src.train_engine import TrainEngine, TrainingStoppedError
+from src.train_engine import TrainEngine, TrainingStoppedError, _resolve_gate_csvs
 
 # --- Global Config ---
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -362,6 +362,9 @@ class TrainRequest(BaseModel):
     architecture: str = "ARCH-GATE-EFF"; epochs: int = 10; batch_size: int = 32
     learning_rate: float = 0.001; optimizer: str = "Adam"; augmentation: bool = True
     dataset_version_id: Optional[str] = None
+    max_train_samples: Optional[int] = None
+    max_val_samples: Optional[int] = None
+    subset_seed: int = 42
 
 @app.get("/mlops/training/status")
 async def get_training_status(): return _training_status
@@ -423,11 +426,16 @@ async def start_training(req: TrainRequest, background_tasks: BackgroundTasks):
 
 @app.post("/mlops/training/stop")
 async def stop_training():
-    if not _training_status.get("is_running"):
+    if not _training_status.get("is_running") and not train_engine.is_running:
         return {"message": "No training is running", "status": _training_status}
 
     train_engine.stop()
-    _training_status.update({"message": "STOPPING", "stop_requested": True})
+    _training_status.update({
+        "is_running": True,
+        "message": "STOPPING",
+        "stop_requested": True,
+        "progress": _training_status.get("progress", 0),
+    })
     return {"message": "Stop requested", "status": _training_status}
 
 # --- Deployment & Deletion Control ---
@@ -436,6 +444,93 @@ class DeployRequest(BaseModel):
     gate_file: str = ""       # 실제 로드할 gate 파일명 (예: round1_gate.pt)
     heatmap_file: str = ""    # 실제 로드할 heatmap 파일명
     ensemble_enabled: bool = True
+
+
+def _feedback_csv_rows(feedback_items: List[Dict[str, Any]]) -> List[List[str]]:
+    rows = []
+    for fb in feedback_items:
+        abs_path = str(_feedback_local_path(fb))
+        rows.append([abs_path, "feedback", fb["feedback_type"], fb["label"], "retrain", "train"])
+    return rows
+
+
+def _feedback_local_path(feedback_item: Dict[str, Any]) -> Path:
+    local_rel_path = str(feedback_item.get("image_url", "")).replace("/mlops-assets/", "").lstrip("/\\")
+    return MLOPS_ASSETS_ROOT / local_rel_path
+
+
+def _ensure_feedback_file(feedback_item: Dict[str, Any]) -> bool:
+    local_path = _feedback_local_path(feedback_item)
+    if local_path.exists():
+        return True
+
+    if STORAGE_TYPE == "S3" and s3_utils:
+        try:
+            _ensure_dir(local_path.parent)
+            if s3_utils.download_file(S3_BUCKET_FEEDBACK, local_path.name, str(local_path)):
+                return local_path.exists()
+        except Exception as e:
+            logger.warning("Feedback file restore failed for %s: %s", feedback_item.get("id"), e)
+
+    return False
+
+
+def _filter_available_feedback_items(
+    feedback_items: List[Dict[str, Any]],
+) -> tuple[List[Dict[str, Any]], List[str]]:
+    available = []
+    missing_ids = []
+    for fb in feedback_items:
+        if _ensure_feedback_file(fb):
+            available.append(fb)
+        else:
+            missing_ids.append(str(fb.get("id", "unknown")))
+
+    if missing_ids:
+        logger.warning(
+            "Skipping %d feedback items with missing image files: %s",
+            len(missing_ids),
+            ", ".join(missing_ids[:12]),
+        )
+    return available, missing_ids
+
+
+def _write_feedback_csv(csv_path: Path, feedback_items: List[Dict[str, Any]], append: bool = False) -> None:
+    file_exists = csv_path.exists()
+    with open(csv_path, "a" if append and file_exists else "w", newline="", encoding="utf-8") as f:
+        import csv
+        writer = csv.writer(f)
+        if not (append and file_exists):
+            writer.writerow(["path", "dataset_type", "defect_type", "label", "round", "split"])
+        writer.writerows(_feedback_csv_rows(feedback_items))
+
+
+def _write_derived_training_csvs(
+    source_dataset_id: str,
+    target_dataset_id: str,
+    feedback_items: List[Dict[str, Any]],
+) -> tuple[Path, Path]:
+    import csv
+
+    splits_dir = PROJECT_ROOT / "splits"
+    _ensure_dir(splits_dir)
+    source_train_csv, source_val_csv = _resolve_gate_csvs(splits_dir, source_dataset_id)
+    target_train_csv = splits_dir / f"{target_dataset_id.lower()}.csv"
+    target_val_csv = splits_dir / f"{target_dataset_id.lower()}_val.csv"
+
+    with open(source_train_csv, "r", newline="", encoding="utf-8") as src, open(
+        target_train_csv, "w", newline="", encoding="utf-8"
+    ) as dst:
+        reader = csv.reader(src)
+        writer = csv.writer(dst)
+        header = next(reader, ["path", "dataset_type", "defect_type", "label", "round", "split"])
+        writer.writerow(header)
+        writer.writerows(reader)
+        writer.writerows(_feedback_csv_rows(feedback_items))
+
+    shutil.copyfile(source_val_csv, target_val_csv)
+    return target_train_csv, target_val_csv
+
 
 class MaterializeRequest(BaseModel):
     mode: Literal["append", "new"]
@@ -453,7 +548,13 @@ async def materialize_dataset(req: MaterializeRequest):
     if not feedback_items:
         raise HTTPException(400, "No labeled feedback items selected")
 
+    feedback_items, missing_feedback_ids = _filter_available_feedback_items(feedback_items)
+    if not feedback_items:
+        raise HTTPException(400, "Selected feedback image files are missing. Re-upload feedback images before materializing.")
+
     # 1. 새로운 데이터셋 버전 생성 또는 기존 업데이트
+    created_csv_paths: List[Path] = []
+    materialize_kind = req.mode
     if req.mode == "new":
         new_ds_id = f"DATA-FEEDBACK-{uuid.uuid4().hex[:6].upper()}"
         new_ds = {
@@ -474,44 +575,61 @@ async def materialize_dataset(req: MaterializeRequest):
         target_id = req.target_dataset_id or state["active_dataset_id"]
         ds = next((d for d in state["dataset_versions"] if d["id"] == target_id), None)
         if not ds: raise HTTPException(404, "Target dataset not found")
-        materialized_ids = set(ds.get("materialized_feedback_item_ids", []))
-        feedback_items = [fb for fb in feedback_items if fb["id"] not in materialized_ids]
-        if not feedback_items:
-            raise HTTPException(400, "No new labeled feedback items to apply")
-        ds["sample_count"] += len(feedback_items)
-        ds["feedback_count"] += len(feedback_items)
-        ds["materialized_feedback_item_ids"] = sorted(materialized_ids | {fb["id"] for fb in feedback_items})
-        ds["updated_at"] = _iso_now()
+        if ds.get("status") == "locked":
+            materialized_ids = set(ds.get("materialized_feedback_item_ids", []))
+            feedback_items = [fb for fb in feedback_items if fb["id"] not in materialized_ids]
+            if not feedback_items:
+                raise HTTPException(400, "No new labeled feedback items to apply")
+
+            new_ds_id = f"DATA-MIX-{uuid.uuid4().hex[:6].upper()}"
+            new_ds = {
+                "id": new_ds_id,
+                "name": req.dataset_name or f"{ds.get('name', target_id)} + Feedback ({_iso_now()})",
+                "status": "prepared",
+                "sample_count": int(ds.get("sample_count", 0)) + len(feedback_items),
+                "feedback_count": int(ds.get("feedback_count", 0)) + len(feedback_items),
+                "source_dataset_id": target_id,
+                "materialized_feedback_item_ids": sorted(materialized_ids | {fb["id"] for fb in feedback_items}),
+                "samples": [],
+                "updated_at": _iso_now(),
+                "notes": f"Derived from locked dataset {target_id} with {len(feedback_items)} feedback items",
+            }
+            state["dataset_versions"].insert(0, new_ds)
+            state["active_dataset_id"] = new_ds_id
+            created_csv_paths = list(_write_derived_training_csvs(target_id, new_ds_id, feedback_items))
+            target_id = new_ds_id
+            materialize_kind = "derived"
+        else:
+            materialized_ids = set(ds.get("materialized_feedback_item_ids", []))
+            feedback_items = [fb for fb in feedback_items if fb["id"] not in materialized_ids]
+            if not feedback_items:
+                raise HTTPException(400, "No new labeled feedback items to apply")
+            ds["sample_count"] += len(feedback_items)
+            ds["feedback_count"] += len(feedback_items)
+            ds["materialized_feedback_item_ids"] = sorted(materialized_ids | {fb["id"] for fb in feedback_items})
+            ds["updated_at"] = _iso_now()
 
     # 2. 물리적 CSV 생성 (학습 엔진이 참조할 용도)
-    # 실제로는 storage/mlops/splits/ 폴더에 저장하거나 S3에 업로드
-    splits_dir = PROJECT_ROOT / "splits"
-    _ensure_dir(splits_dir)
-    csv_name = f"{target_id.lower()}.csv"
-    csv_path = splits_dir / csv_name
-    
-    file_exists = csv_path.exists()
-    with open(csv_path, "a" if req.mode == "append" and file_exists else "w", encoding="utf-8") as f:
-        import csv
-        writer = csv.writer(f)
-        if not (req.mode == "append" and file_exists):
-            writer.writerow(["path", "dataset_type", "defect_type", "label", "round", "split"])
-        
-        for fb in feedback_items:
-            # image_url: /mlops-assets/feedback/xxx.png -> absolute path
-            local_rel_path = fb["image_url"].replace("/mlops-assets/", "")
-            abs_path = str(MLOPS_ASSETS_ROOT / local_rel_path)
-            # label mapping (anomaly/normal)
-            label = fb["label"] # UI에서 이미 'anomaly' 또는 'normal'로 보냄
-            writer.writerow([abs_path, "feedback", fb["feedback_type"], label, "retrain", "train"])
+    if not created_csv_paths:
+        splits_dir = PROJECT_ROOT / "splits"
+        _ensure_dir(splits_dir)
+        csv_path = splits_dir / f"{target_id.lower()}.csv"
+        _write_feedback_csv(csv_path, feedback_items, append=req.mode == "append")
+        created_csv_paths = [csv_path]
 
     # 3. S3 동기화 (CSV 파일)
     if STORAGE_TYPE == "S3" and s3_utils:
-        s3_utils.upload_file(str(csv_path), S3_BUCKET_DATASETS, csv_name)
+        for csv_path in created_csv_paths:
+            s3_utils.upload_file(str(csv_path), S3_BUCKET_DATASETS, csv_path.name)
 
-    _append_log(state, "success", f"Dataset materialized: {target_id} ({len(feedback_items)} items)")
+    _append_log(state, "success", f"Dataset materialized: {target_id} ({len(feedback_items)} items, {materialize_kind})")
     _save_state(state)
-    return {"message": "Materialization successful", "dataset_id": target_id}
+    return {
+        "message": "Materialization successful",
+        "dataset_id": target_id,
+        "mode": materialize_kind,
+        "skipped_feedback_item_ids": missing_feedback_ids,
+    }
 
 def _perform_hot_swap(gate_file: str = "", heatmap_file: str = ""):
     """메모리에 로드된 모델을 실제 파일 기반으로 교체하는 핵심 로직 (S3 지원)"""

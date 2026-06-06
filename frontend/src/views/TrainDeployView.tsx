@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import {
   createTrainingRun,
-  materializeFeedbackDataset,
   promoteModel,
   rollbackDeployment,
   saveTrainingRecipe,
@@ -14,6 +13,15 @@ import type { BusyAction, LineId } from "../app/types";
 import { cls, formatKoreaTimestamp, pickCanaryModel, pickProductionModel, pickStagingModel, recipeDraftFrom } from "../app/utils";
 import type { DashboardResponse, ModelVersion, TrainingRecipe } from "../types/mlops";
 import { Badge, Card, MessageBanner } from "../components/ui";
+
+const TRAIN_SAMPLE_PRESETS = [
+  { id: "full", label: "전체 데이터", trainSamples: null, valSamples: null },
+  { id: "quick", label: "빠른 검증 · train 200 / val 80", trainSamples: 200, valSamples: 80 },
+  { id: "small", label: "소형 · train 600 / val 160", trainSamples: 600, valSamples: 160 },
+  { id: "medium", label: "중형 · train 1200 / val 240", trainSamples: 1200, valSamples: 240 },
+] as const;
+
+type TrainSamplePresetId = (typeof TRAIN_SAMPLE_PRESETS)[number]["id"];
 
 function DeploymentCard({
   title,
@@ -55,6 +63,7 @@ export function TrainDeployView({
   const [busyAction, setBusyAction] = useState<BusyAction>(null);
   const [message, setMessage] = useState("");
   const [selectedDatasetId, setSelectedDatasetId] = useState(dashboard.active_dataset_id);
+  const [selectedSamplePresetId, setSelectedSamplePresetId] = useState<TrainSamplePresetId>("full");
   const [selectedBaseModelId, setSelectedBaseModelId] = useState(productionModel?.id ?? dashboard.model_versions[0]?.id ?? "");
   const [selectedRecipeId, setSelectedRecipeId] = useState(firstRecipe?.id ?? "");
   const [selectedDeployModelId, setSelectedDeployModelId] = useState(candidateModel?.id ?? "");
@@ -73,12 +82,13 @@ export function TrainDeployView({
   }, [dashboard.active_dataset_id, dashboard.dataset_versions, selectedDatasetId]);
 
   const selectedRecipe = recipes.find((recipe) => recipe.id === selectedRecipeId) ?? firstRecipe;
+  const selectedSamplePreset =
+    TRAIN_SAMPLE_PRESETS.find((preset) => preset.id === selectedSamplePresetId) ?? TRAIN_SAMPLE_PRESETS[0];
   const selectedDeployModel = dashboard.model_versions.find((model) => model.id === selectedDeployModelId) ?? candidateModel;
-  const selectedDataset = dashboard.dataset_versions.find((dataset) => dataset.id === selectedDatasetId);
-  const appliedFeedbackIds = new Set(selectedDataset?.materialized_feedback_item_ids ?? []);
   const runProgress = Math.min(100, Math.max(0, latestRun?.progress ?? 0));
   const runTone = latestRun?.status === "completed" ? "green" : latestRun?.status === "failed" ? "red" : activeRun ? "amber" : "blue";
   const runMetrics = latestRun?.final_metrics ?? {};
+  const hasBatchProgress = runMetrics.batch !== undefined && runMetrics.total_batches !== undefined;
 
   function selectRecipe(recipe: TrainingRecipe) {
     setSelectedRecipeId(recipe.id);
@@ -111,17 +121,6 @@ export function TrainDeployView({
     try {
       setBusyAction("train");
       setMessage("");
-      const trainingFeedbackIds = dashboard.feedback_items
-        .filter((item) => item.label === "normal" || item.label === "anomaly")
-        .filter((item) => !appliedFeedbackIds.has(item.id))
-        .map((item) => item.id);
-      if (trainingFeedbackIds.length) {
-        await materializeFeedbackDataset({
-          mode: "append",
-          targetDatasetId: selectedDatasetId,
-          feedbackItemIds: trainingFeedbackIds,
-        });
-      }
       await createTrainingRun({
         modelName: modelName.trim() || formatKoreaTimestamp(),
         knownModelIds: dashboard.model_versions.map((model) => model.id),
@@ -133,6 +132,8 @@ export function TrainDeployView({
         batchSize: recipeDraft.batch_size,
         learningRate: recipeDraft.learning_rate,
         optimizer: recipeDraft.optimizer,
+        maxTrainSamples: selectedSamplePreset.trainSamples,
+        maxValSamples: selectedSamplePreset.valSamples,
       });
       setModelName(formatKoreaTimestamp());
       setMessage("학습을 시작했습니다.");
@@ -242,6 +243,12 @@ export function TrainDeployView({
                       </select>
                     </label>
                     <label>
+                      <div className="text-sm font-black text-slate-500">학습 규모</div>
+                      <select value={selectedSamplePresetId} onChange={(event) => setSelectedSamplePresetId(event.target.value as TrainSamplePresetId)} className="ui-control mt-1 w-full">
+                        {TRAIN_SAMPLE_PRESETS.map((preset) => <option key={preset.id} value={preset.id}>{preset.label}</option>)}
+                      </select>
+                    </label>
+                    <label>
                       <div className="text-sm font-black text-slate-500">기준 모델</div>
                       <select value={selectedBaseModelId} onChange={(event) => setSelectedBaseModelId(event.target.value)} className="ui-control mt-1 w-full">
                         {dashboard.model_versions.map((model) => <option key={model.id} value={model.id}>{model.id} · {model.status}</option>)}
@@ -324,6 +331,13 @@ export function TrainDeployView({
               </div>
               <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs font-bold text-slate-500">
                 <span>{latestRun?.current_step ?? "IDLE"}</span>
+                {hasBatchProgress ? (
+                  <span>
+                    batch {runMetrics.batch}/{runMetrics.total_batches}
+                    {runMetrics.batch_loss !== undefined ? ` / loss ${runMetrics.batch_loss.toFixed(4)}` : ""}
+                    {runMetrics.running_loss !== undefined ? ` / avg ${runMetrics.running_loss.toFixed(4)}` : ""}
+                  </span>
+                ) : null}
                 {runMetrics.val_f1 !== undefined || runMetrics.val_loss !== undefined ? (
                   <span>
                     F1 {runMetrics.val_f1?.toFixed?.(4) ?? "-"} / loss {runMetrics.val_loss?.toFixed?.(4) ?? "-"}
