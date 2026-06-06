@@ -25,7 +25,18 @@ export function VersionView({
     }
   }, [dashboard.active_dataset_id, dashboard.dataset_versions, targetDatasetId]);
 
+  const targetDataset = dashboard.dataset_versions.find((dataset) => dataset.id === targetDatasetId);
+  const labeledFeedbackItems = dashboard.feedback_items.filter((item) => item.label === "normal" || item.label === "anomaly");
+  const appliedFeedbackIds = new Set(targetDataset?.materialized_feedback_item_ids ?? []);
+  const pendingFeedbackItems = labeledFeedbackItems.filter((item) => !appliedFeedbackIds.has(item.id));
+
   async function handleFeedbackMaterialize(mode: "append" | "new") {
+    const selectedFeedbackItems = mode === "append" ? pendingFeedbackItems : labeledFeedbackItems;
+    if (!selectedFeedbackItems.length) {
+      setMessage(mode === "append" ? "기존 데이터셋에 반영할 신규 피드백이 없습니다." : "새 데이터셋으로 저장할 라벨 확정 피드백이 없습니다.");
+      return;
+    }
+
     try {
       setBusy(true);
       setMessage("");
@@ -33,10 +44,10 @@ export function VersionView({
         mode,
         targetDatasetId,
         datasetName: mode === "new" ? datasetName : undefined,
-        feedbackItemIds: dashboard.feedback_items.map((item) => item.id),
-        feedbackItems: dashboard.feedback_items,
+        feedbackItemIds: selectedFeedbackItems.map((item) => item.id),
+        feedbackItems: selectedFeedbackItems,
       });
-      setMessage(mode === "new" ? "피드백으로 새 데이터셋을 만들었습니다." : "피드백을 기존 데이터셋에 추가했습니다.");
+      setMessage(mode === "new" ? "라벨 확정 피드백으로 새 데이터셋을 만들었습니다." : "신규 피드백을 기존 데이터셋에 반영했습니다.");
       await onRefresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "피드백 데이터셋 처리에 실패했습니다.");
@@ -87,23 +98,37 @@ export function VersionView({
 
         <div className="mb-4 grid grid-cols-2 gap-4">
           <div className="ui-panel-muted p-4">
-            <div className="mb-4 text-base font-black text-slate-950">데이터셋 수정 및 추가</div>
+            <div className="mb-4 text-base font-black text-slate-950">피드백 데이터 반영</div>
             <div className="grid gap-4">
               <label>
-                <div className="text-sm font-black text-slate-500">수정할 데이터셋</div>
+                <div className="text-sm font-black text-slate-500">반영할 기존 데이터셋</div>
                 <select value={targetDatasetId} onChange={(event) => setTargetDatasetId(event.target.value)} className="ui-control mt-2 w-full">
                   {dashboard.dataset_versions.map((dataset) => <option key={dataset.id} value={dataset.id}>{dataset.name} · {dataset.sample_count}</option>)}
                 </select>
               </label>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="ui-panel bg-white p-3">
+                  <div className="text-xs font-black text-slate-500">전체 피드백</div>
+                  <div className="mt-1 text-lg font-black text-slate-950">{dashboard.feedback_items.length}</div>
+                </div>
+                <div className="ui-panel bg-white p-3">
+                  <div className="text-xs font-black text-slate-500">라벨 확정</div>
+                  <div className="mt-1 text-lg font-black text-slate-950">{labeledFeedbackItems.length}</div>
+                </div>
+                <div className="ui-panel bg-white p-3">
+                  <div className="text-xs font-black text-slate-500">신규 반영 대기</div>
+                  <div className="mt-1 text-lg font-black text-slate-950">{pendingFeedbackItems.length}</div>
+                </div>
+              </div>
               <label>
                 <div className="text-sm font-black text-slate-500">새 데이터셋 이름</div>
-                <input value={datasetName} onChange={(event) => setDatasetName(event.target.value)} className="ui-control mt-2 w-full" placeholder="새 이름 입력" />
+                <input value={datasetName} onChange={(event) => setDatasetName(event.target.value)} className="ui-control mt-2 w-full" placeholder="새 데이터셋으로 저장할 때만 사용" />
               </label>
-              <div className="grid grid-cols-2 gap-4">
-                <button onClick={() => handleFeedbackMaterialize("append")} disabled={busy || !dashboard.feedback_items.length} className="ui-button ui-button-neutral">
-                  기존 데이터셋에 반영
+              <div className="grid grid-cols-[1.2fr_.8fr] gap-4">
+                <button onClick={() => handleFeedbackMaterialize("append")} disabled={busy || !pendingFeedbackItems.length} className="ui-button ui-button-primary">
+                  신규 피드백 기존 데이터셋에 반영
                 </button>
-                <button onClick={() => handleFeedbackMaterialize("new")} disabled={busy || !dashboard.feedback_items.length} className="ui-button ui-button-neutral">
+                <button onClick={() => handleFeedbackMaterialize("new")} disabled={busy || !labeledFeedbackItems.length} className="ui-button ui-button-neutral">
                   새 데이터셋으로 저장
                 </button>
               </div>

@@ -15,18 +15,23 @@ from src.device_utils import get_device
 
 logger = logging.getLogger("steelvision.train")
 
+class TrainingStoppedError(RuntimeError):
+    pass
+
 class TrainEngine:
     def __init__(self, s3_utils=None, state_manager=None):
         self.s3_utils = s3_utils
         self.state_manager = state_manager  # Function to update global status
         self.device = get_device()
         self.is_running = False
+        self.stop_requested = False
 
     async def train_gate(self, req: Dict[str, Any], status_callback: Callable):
         """
         Trains the Gate (Binary Classifier) model using actual PyTorch logic.
         """
         self.is_running = True
+        self.stop_requested = False
         try:
             # 1. Setup Data
             splits_dir = Path("/app/splits")
@@ -72,15 +77,37 @@ class TrainEngine:
             # 3. Actual Training (Blocking call wrapped in thread)
             status_callback(progress=10, message=f"STARTING PYTORCH ({backbone})")
             
+            def _on_epoch(record):
+                epoch = int(record.get("epoch", 0))
+                progress = min(89, 10 + round((epoch / max(config.epochs, 1)) * 80))
+                status_callback(
+                    progress=progress,
+                    message=f"TRAINING EPOCH {epoch}/{config.epochs}",
+                    epoch=epoch,
+                    metrics={
+                        "train_loss": record.get("train_loss", 0),
+                        "val_loss": record.get("val_loss", 0),
+                        "val_acc": record.get("val_acc", 0),
+                        "val_f1": record.get("val_f1", 0),
+                        "lr": record.get("lr", 0),
+                    },
+                )
+
             def _sync_train():
                 # Note: This is the real training call to gate_model.py
                 return model.train_model(
                     train_loader=train_loader,
                     val_loader=val_loader,
-                    config=config
+                    config=config,
+                    progress_callback=_on_epoch,
+                    should_stop=lambda: self.stop_requested,
                 )
             
             await asyncio.to_thread(_sync_train)
+
+            if self.stop_requested:
+                status_callback(progress=0, message="STOPPED", epoch=0)
+                raise TrainingStoppedError("Training stopped by user")
             
             # 4. Save and Upload
             status_callback(progress=90, message="SAVING WEIGHTS & METRICS")
@@ -129,12 +156,14 @@ class TrainEngine:
             raise e
         finally:
             self.is_running = False
+            self.stop_requested = False
 
     async def train_heatmap(self, req: Dict[str, Any], status_callback: Callable):
         """
         Trains the Heatmap (PatchCore) model using actual fit() logic.
         """
         self.is_running = True
+        self.stop_requested = False
         try:
             status_callback(progress=10, message="LOADING NORMAL SAMPLES")
             
@@ -153,7 +182,11 @@ class TrainEngine:
             loader = create_dataloader(str(train_csv), transform=get_eval_transforms(), batch_size=1, shuffle=False)
             
             status_callback(progress=30, message="EXTRACTING FEATURES (CORESET)")
-            await asyncio.to_thread(model.fit, loader)
+            await asyncio.to_thread(model.fit, loader, lambda: self.stop_requested)
+
+            if self.stop_requested:
+                status_callback(progress=0, message="STOPPED", epoch=0)
+                raise TrainingStoppedError("Training stopped by user")
             
             # 3. Save and Upload
             status_callback(progress=90, message="SAVING PATCHCORE ARTIFACT")
@@ -177,6 +210,8 @@ class TrainEngine:
             raise e
         finally:
             self.is_running = False
+            self.stop_requested = False
 
     def stop(self):
-        self.is_running = False
+        if self.is_running:
+            self.stop_requested = True

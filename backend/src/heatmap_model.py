@@ -24,7 +24,7 @@ from __future__ import annotations
 import logging
 import pickle
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import torch
@@ -278,7 +278,11 @@ class PatchCoreModel:
     # ------------------------------------------------------------------
     # fit
     # ------------------------------------------------------------------
-    def fit(self, dataloader: DataLoader) -> "PatchCoreModel":
+    def fit(
+        self,
+        dataloader: DataLoader,
+        should_stop: Optional[Callable[[], bool]] = None,
+    ) -> "PatchCoreModel":
         """Train the model by extracting a memory bank from normal images.
 
         Iterates over all batches in the dataloader, extracts patch-level
@@ -300,6 +304,10 @@ class PatchCoreModel:
         logger.info("Extracting features from training set (%d batches)...", len(dataloader))
 
         for batch_idx, batch in enumerate(dataloader):
+            if should_stop is not None and should_stop():
+                logger.info("PatchCore training stop requested at batch %d.", batch_idx + 1)
+                break
+
             # Support both plain tensors and (image, label) tuples
             if isinstance(batch, (list, tuple)):
                 images = batch[0]
@@ -312,6 +320,11 @@ class PatchCoreModel:
 
             if (batch_idx + 1) % 10 == 0:
                 logger.info("  Processed batch %d / %d", batch_idx + 1, len(dataloader))
+
+        if not all_patches and should_stop is not None and should_stop():
+            return self
+        if not all_patches:
+            raise RuntimeError("PatchCore training stopped before any batches were processed.")
 
         # Store spatial dimensions from the last batch
         self._feature_map_h = H
@@ -578,46 +591,36 @@ class PatchCoreModel:
         if not path.exists():
             raise FileNotFoundError(f"Model file not found: {path}")
 
-        with open(path, "rb") as f:
-            # 수정 전
-            # state = pickle.load(f)
-            # 수정 후 (더 안전한 로딩 방식 시도)
-            # 수정 후: state 변수를 미리 선언하거나 try 블록 전체를 아래처럼 감싸기
-        
-            state = None # 변수를 미리 선언
-            try:
-                state = torch.load(path, map_location=device) 
-                logger.info("Heatmap model loaded using torch.load")
-            except Exception as e:
-                # torch.load가 실패할 경우의 대비책
-                logger.warning(f"torch.load failed, trying pickle: {e}")
-                with open(path, "rb") as f:
-                    state = pickle.load(f)
+        try:
+            with open(path, "rb") as f:
+                state = pickle.load(f)
+            logger.info("Heatmap model loaded using pickle")
+        except Exception as pickle_error:
+            # Backward compatibility for PatchCore checkpoints saved with torch.save.
+            logger.warning("pickle.load failed, trying torch.load: %s", pickle_error)
+            state = torch.load(path, map_location=device, weights_only=False)
+            logger.info("Heatmap model loaded using torch.load")
 
         backbone_name = state.get("backbone_name", "resnet18")
-        input_size = state.get("input_size", (224, 224))
+        input_size = state.get("input_size", INPUT_SIZE)
+        if isinstance(input_size, (tuple, list)):
+            input_size = input_size[0]
         k_neighbors = state.get("k_neighbors", 9)
 
-        # 2. 클래스 생성자(__init__)를 호출
-        # 'layers'가 문제였 - 일단 제외하고 생성
-        # 1. 모델 객체 생성 (기존과 동일하거나 .get 적용)
         model = cls(
-            backbone_name=state.get("backbone_name", "resnet18"),
-            input_size=state.get("input_size", (224, 224)),
-            k_neighbors=state.get("k_neighbors", 9),
-            device=device
+            backbone_name=backbone_name,
+            input_size=input_size,
+            k_neighbors=k_neighbors,
+            device=device,
         )
 
-        # 2. 내부 변수 할당 (KeyError 방지 로직)
-        # memory_bank가 coreset이라는 이름으로 저장되어 있을 수도 있으니 둘 다 체크
+        # Restore state while accepting older names used by previous exports.
         model._memory_bank = state.get("memory_bank", state.get("coreset", None))
-        
-        # 특징 맵 크기 및 임베딩 차원 (PatchCore ResNet18 기본값: 28, 28, 448)
         model._feature_map_h = state.get("feature_map_h", 28)
         model._feature_map_w = state.get("feature_map_w", 28)
         model._embedding_dim = state.get("embedding_dim", 448)
 
-        # 3. k-NN 인덱스 재구축
+        # Rebuild the k-NN index.
         if model._memory_bank is not None:
             from sklearn.neighbors import NearestNeighbors
             model._nn_index = NearestNeighbors(

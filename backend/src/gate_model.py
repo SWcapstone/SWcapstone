@@ -24,7 +24,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -214,6 +214,8 @@ class GateModel:
         train_loader: DataLoader,
         val_loader: DataLoader,
         config: Optional[GateTrainConfig] = None,
+        progress_callback: Optional[Callable[[Dict[str, float]], None]] = None,
+        should_stop: Optional[Callable[[], bool]] = None,
     ) -> List[Dict[str, float]]:
         """Train the gate model.
 
@@ -277,6 +279,10 @@ class GateModel:
             )
 
         for epoch in range(1, config.epochs + 1):
+            if should_stop is not None and should_stop():
+                logger.info("Training stopped before epoch %d.", epoch)
+                break
+
             # Unfreeze backbone after warmup
             if epoch == config.freeze_backbone_epochs + 1:
                 self._unfreeze_backbone()
@@ -300,8 +306,12 @@ class GateModel:
 
             # ---- train phase ------------------------------------------------
             train_loss = self._train_one_epoch(
-                train_loader, criterion, optimizer, scaler, amp_device_type, config
+                train_loader, criterion, optimizer, scaler, amp_device_type, config, should_stop
             )
+
+            if should_stop is not None and should_stop():
+                logger.info("Training stopped after epoch %d train phase.", epoch)
+                break
 
             # ---- val phase --------------------------------------------------
             val_metrics = self._validate(val_loader, criterion, amp_device_type)
@@ -323,6 +333,8 @@ class GateModel:
                 "time_s": elapsed,
             }
             history.append(record)
+            if progress_callback is not None:
+                progress_callback(record)
             logger.info(
                 "Epoch %d/%d  train_loss=%.4f  val_loss=%.4f  val_f1=%.4f  "
                 "lr=%.2e  (%.1fs)",
@@ -367,12 +379,17 @@ class GateModel:
         scaler: Optional[torch.amp.GradScaler],
         amp_device_type: str,
         config: GateTrainConfig,
+        should_stop: Optional[Callable[[], bool]] = None,
     ) -> float:
         self.model.train()
         running_loss = 0.0
         n_batches = 0
 
         for batch_idx, (images, labels) in enumerate(loader):
+            if should_stop is not None and should_stop():
+                logger.info("Training stop requested at batch %d.", batch_idx + 1)
+                break
+
             images = images.to(self.device, non_blocking=True)
             labels = labels.to(self.device, non_blocking=True).float().unsqueeze(1)
 

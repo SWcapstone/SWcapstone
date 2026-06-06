@@ -1,12 +1,43 @@
 {
-  "active_dataset_id": "DATA-C2BD0809",
+  "active_dataset_id": "DATA-FEEDBACK-44A78A",
   "dataset_versions": [
+    {
+      "id": "DATA-FEEDBACK-44A78A",
+      "name": ".",
+      "status": "prepared",
+      "sample_count": 36,
+      "feedback_count": 39,
+      "samples": [],
+      "updated_at": "2026-06-06T10:44:17",
+      "notes": "Materialized from 17 feedback items",
+      "materialized_feedback_item_ids": [
+        "FDBK-075B03B7",
+        "FDBK-0C2C7A5D",
+        "FDBK-126CEC22",
+        "FDBK-1A6ED7B4",
+        "FDBK-1EFDD2B6",
+        "FDBK-2B5C069D",
+        "FDBK-2E77CD81",
+        "FDBK-3F4CDF3C",
+        "FDBK-66B7F830",
+        "FDBK-66CADA81",
+        "FDBK-6F3CD071",
+        "FDBK-7EA30AC7",
+        "FDBK-8E6D6AE7",
+        "FDBK-8FFE5BAC",
+        "FDBK-B07DD63C",
+        "FDBK-C7180D48",
+        "FDBK-D1836D93",
+        "FDBK-D5509B83",
+        "FDBK-DD1CF1B6"
+      ]
+    },
     {
       "id": "DATA-C2BD0809",
       "name": "New Upload (2026-05-22T20:11:47)",
       "status": "prepared",
-      "sample_count": 58,
-      "feedback_count": 57,
+      "sample_count": 104,
+      "feedback_count": 105,
       "samples": [
         {
           "id": "SMPL-609ADF70",
@@ -97,15 +128,15 @@
           }
         }
       ],
-      "updated_at": "2026-05-27T15:57:41",
+      "updated_at": "2026-06-06T10:29:08",
       "notes": "Materialized 8 feedback items"
     },
     {
       "id": "DATA-64E73DFD",
       "name": "New Upload (2026-05-22T20:05:09)",
       "status": "prepared",
-      "sample_count": 16,
-      "feedback_count": 0,
+      "sample_count": 33,
+      "feedback_count": 17,
       "samples": [
         {
           "id": "SMPL-9A000EF5",
@@ -284,15 +315,34 @@
           }
         }
       ],
-      "updated_at": "2026-05-22T20:11:48",
-      "notes": "Materialized 8 feedback items"
+      "updated_at": "2026-06-06T10:42:57",
+      "notes": "Materialized 8 feedback items",
+      "materialized_feedback_item_ids": [
+        "FDBK-075B03B7",
+        "FDBK-0C2C7A5D",
+        "FDBK-126CEC22",
+        "FDBK-1A6ED7B4",
+        "FDBK-1EFDD2B6",
+        "FDBK-2B5C069D",
+        "FDBK-2E77CD81",
+        "FDBK-3F4CDF3C",
+        "FDBK-66B7F830",
+        "FDBK-66CADA81",
+        "FDBK-6F3CD071",
+        "FDBK-7EA30AC7",
+        "FDBK-8E6D6AE7",
+        "FDBK-8FFE5BAC",
+        "FDBK-B07DD63C",
+        "FDBK-C7180D48",
+        "FDBK-D5509B83"
+      ]
     },
     {
       "id": "DATA-V3-PRODUCTION",
       "name": "Round 3 Pool",
       "status": "locked",
-      "sample_count": 14858,
-      "feedback_count": 8,
+      "sample_count": 14877,
+      "feedback_count": 27,
       "samples": [
         {
           "id": "SMPL-56DD6360",
@@ -383,10 +433,168 @@
           }
         }
       ],
-      "updated_at": "2026-05-22T20:05:13"
+      "updated_at": "2026-06-06T10:44:00",
+      "materialized_feedback_item_ids": [
+        "FDBK-075B03B7",
+        "FDBK-0C2C7A5D",
+        "FDBK-126CEC22",
+        "FDBK-1A6ED7B4",
+        "FDBK-1EFDD2B6",
+        "FDBK-2B5C069D",
+        "FDBK-2E77CD81",
+        "FDBK-3F4CDF3C",
+        "FDBK-66B7F830",
+        "FDBK-66CADA81",
+        "FDBK-6F3CD071",
+        "FDBK-7EA30AC7",
+        "FDBK-8E6D6AE7",
+        "FDBK-8FFE5BAC",
+        "FDBK-B07DD63C",
+        "FDBK-C7180D48",
+        "FDBK-D1836D93",
+        "FDBK-D5509B83",
+        "FDBK-DD1CF1B6"
+      ]
     }
   ],
   "model_versions": [
+    {
+      "id": "MODEL-39B866",
+      "name": "2026-06-06 19:44:32 KST",
+      "status": "candidate",
+      "metrics": {
+        "epoch": 2,
+        "train_loss": 0.36198689341545104,
+        "val_loss": 0.31817508935928346,
+        "val_acc": 0.8055555555555556,
+        "val_recall": 0.8518518518518519,
+        "val_precision": 0.8846153846153846,
+        "val_f1": 0.8679245283018868,
+        "lr": 1e-06,
+        "time_s": 13.655108213424683
+      },
+      "lineage": "Auto-train from DATA-FEEDBACK-44A78A",
+      "filename": "retrained_efficientnet_b0_20260606_104510.pt"
+    },
+    {
+      "id": "MODEL-8A4EB3",
+      "name": "2026-06-06 19:41:23 KST",
+      "status": "candidate",
+      "metrics": {
+        "epoch": 3,
+        "train_loss": 0.2940097823739052,
+        "val_loss": 0.432981938123703,
+        "val_acc": 0.7647058823529411,
+        "val_recall": 1.0,
+        "val_precision": 0.7647058823529411,
+        "val_f1": 0.8666666666666666,
+        "lr": 1e-06,
+        "time_s": 8.390210151672363
+      },
+      "lineage": "Auto-train from DATA-V3-PRODUCTION",
+      "filename": "retrained_efficientnet_b0_20260606_104226.pt"
+    },
+    {
+      "id": "MODEL-C46621",
+      "name": "2026-06-06 19:29:05 KST",
+      "status": "candidate",
+      "metrics": {
+        "epoch": 10,
+        "train_loss": 0.18542997539043427,
+        "val_loss": 0.2733851671218872,
+        "val_acc": 0.782608695652174,
+        "val_recall": 1.0,
+        "val_precision": 0.782608695652174,
+        "val_f1": 0.878048780487805,
+        "lr": 1e-06,
+        "time_s": 12.51732063293457
+      },
+      "lineage": "Auto-train from DATA-C2BD0809",
+      "filename": "retrained_efficientnet_b0_20260606_103059.pt"
+    },
+    {
+      "id": "MODEL-F270E7",
+      "name": "2026-06-06 19:14:54 KST",
+      "status": "production",
+      "metrics": {
+        "epoch": 10,
+        "train_loss": 0.19467486441135406,
+        "val_loss": 0.2424030750989914,
+        "val_acc": 0.9333333333333333,
+        "val_recall": 1.0,
+        "val_precision": 0.9230769230769231,
+        "val_f1": 0.9600000000000001,
+        "lr": 1e-06,
+        "time_s": 4.0334792137146
+      },
+      "lineage": "Auto-train from DATA-C2BD0809",
+      "filename": "retrained_efficientnet_b0_20260606_101553.pt"
+    },
+    {
+      "id": "RETRAINED_EFFICIENTNET_B0_20260527_155856",
+      "name": "Found: retrained_efficientnet_b0_20260527_155856.pt",
+      "status": "candidate",
+      "metrics": {
+        "f1": "N/A (Discovered)"
+      },
+      "lineage": "Auto-discovered from Storage",
+      "filename": "retrained_efficientnet_b0_20260527_155856.pt",
+      "kind": "gate",
+      "params": {},
+      "updated_at": "2026-06-06T10:14:06"
+    },
+    {
+      "id": "RETRAINED_EFFICIENTNET_B0_20260527_155455",
+      "name": "Found: retrained_efficientnet_b0_20260527_155455.pt",
+      "status": "candidate",
+      "metrics": {
+        "f1": "N/A (Discovered)"
+      },
+      "lineage": "Auto-discovered from Storage",
+      "filename": "retrained_efficientnet_b0_20260527_155455.pt",
+      "kind": "gate",
+      "params": {},
+      "updated_at": "2026-06-06T10:14:06"
+    },
+    {
+      "id": "RETRAINED_EFFICIENTNET_B0_20260527_155129",
+      "name": "Found: retrained_efficientnet_b0_20260527_155129.pt",
+      "status": "candidate",
+      "metrics": {
+        "f1": "N/A (Discovered)"
+      },
+      "lineage": "Auto-discovered from Storage",
+      "filename": "retrained_efficientnet_b0_20260527_155129.pt",
+      "kind": "gate",
+      "params": {},
+      "updated_at": "2026-06-06T10:14:06"
+    },
+    {
+      "id": "RETRAINED_EFFICIENTNET_B0_20260527_154719",
+      "name": "Found: retrained_efficientnet_b0_20260527_154719.pt",
+      "status": "candidate",
+      "metrics": {
+        "f1": "N/A (Discovered)"
+      },
+      "lineage": "Auto-discovered from Storage",
+      "filename": "retrained_efficientnet_b0_20260527_154719.pt",
+      "kind": "gate",
+      "params": {},
+      "updated_at": "2026-06-06T10:14:06"
+    },
+    {
+      "id": "MLOPS-RUN-20260424-14-EFFNETB0_GATE",
+      "name": "Found: mlops-run-20260424-14-effnetb0_gate.pt",
+      "status": "candidate",
+      "metrics": {
+        "f1": "N/A (Discovered)"
+      },
+      "lineage": "Auto-discovered from Storage",
+      "filename": "mlops-run-20260424-14-effnetb0_gate.pt",
+      "kind": "gate",
+      "params": {},
+      "updated_at": "2026-06-06T10:14:06"
+    },
     {
       "id": "FOUND:-V3_PATCHCORE_R18_PATCHCORE.PT",
       "name": "Found: v3_patchcore_r18_patchcore.pt",
@@ -687,6 +895,118 @@
   ],
   "training_runs": [
     {
+      "id": "MODEL-39B866",
+      "name": "2026-06-06 19:44:32 KST",
+      "architecture": "ARCH-GATE-EFF",
+      "params": {
+        "model_name": "2026-06-06 19:44:32 KST",
+        "architecture": "ARCH-GATE-EFF",
+        "epochs": 2,
+        "batch_size": 8,
+        "learning_rate": 0.01,
+        "optimizer": "AdamW",
+        "augmentation": true,
+        "dataset_version_id": "DATA-FEEDBACK-44A78A"
+      },
+      "final_metrics": {
+        "epoch": 2,
+        "train_loss": 0.36198689341545104,
+        "val_loss": 0.31817508935928346,
+        "val_acc": 0.8055555555555556,
+        "val_recall": 0.8518518518518519,
+        "val_precision": 0.8846153846153846,
+        "val_f1": 0.8679245283018868,
+        "lr": 1e-06,
+        "time_s": 13.655108213424683
+      },
+      "completed_at": "2026-06-06T10:45:11",
+      "filename": "retrained_efficientnet_b0_20260606_104510.pt"
+    },
+    {
+      "id": "MODEL-8A4EB3",
+      "name": "2026-06-06 19:41:23 KST",
+      "architecture": "ARCH-GATE-EFF",
+      "params": {
+        "model_name": "2026-06-06 19:41:23 KST",
+        "architecture": "ARCH-GATE-EFF",
+        "epochs": 3,
+        "batch_size": 8,
+        "learning_rate": 0.01,
+        "optimizer": "AdamW",
+        "augmentation": true,
+        "dataset_version_id": "DATA-V3-PRODUCTION"
+      },
+      "final_metrics": {
+        "epoch": 3,
+        "train_loss": 0.2940097823739052,
+        "val_loss": 0.432981938123703,
+        "val_acc": 0.7647058823529411,
+        "val_recall": 1.0,
+        "val_precision": 0.7647058823529411,
+        "val_f1": 0.8666666666666666,
+        "lr": 1e-06,
+        "time_s": 8.390210151672363
+      },
+      "completed_at": "2026-06-06T10:42:27",
+      "filename": "retrained_efficientnet_b0_20260606_104226.pt"
+    },
+    {
+      "id": "MODEL-C46621",
+      "name": "2026-06-06 19:29:05 KST",
+      "architecture": "ARCH-GATE-EFF",
+      "params": {
+        "model_name": "2026-06-06 19:29:05 KST",
+        "architecture": "ARCH-GATE-EFF",
+        "epochs": 10,
+        "batch_size": 32,
+        "learning_rate": 0.001,
+        "optimizer": "Adam",
+        "augmentation": true,
+        "dataset_version_id": "DATA-C2BD0809"
+      },
+      "final_metrics": {
+        "epoch": 10,
+        "train_loss": 0.18542997539043427,
+        "val_loss": 0.2733851671218872,
+        "val_acc": 0.782608695652174,
+        "val_recall": 1.0,
+        "val_precision": 0.782608695652174,
+        "val_f1": 0.878048780487805,
+        "lr": 1e-06,
+        "time_s": 12.51732063293457
+      },
+      "completed_at": "2026-06-06T10:31:00",
+      "filename": "retrained_efficientnet_b0_20260606_103059.pt"
+    },
+    {
+      "id": "MODEL-F270E7",
+      "name": "2026-06-06 19:14:54 KST",
+      "architecture": "ARCH-GATE-EFF",
+      "params": {
+        "model_name": "2026-06-06 19:14:54 KST",
+        "architecture": "ARCH-GATE-EFF",
+        "epochs": 10,
+        "batch_size": 32,
+        "learning_rate": 0.001,
+        "optimizer": "Adam",
+        "augmentation": true,
+        "dataset_version_id": "DATA-C2BD0809"
+      },
+      "final_metrics": {
+        "epoch": 10,
+        "train_loss": 0.19467486441135406,
+        "val_loss": 0.2424030750989914,
+        "val_acc": 0.9333333333333333,
+        "val_recall": 1.0,
+        "val_precision": 0.9230769230769231,
+        "val_f1": 0.9600000000000001,
+        "lr": 1e-06,
+        "time_s": 4.0334792137146
+      },
+      "completed_at": "2026-06-06T10:15:53",
+      "filename": "retrained_efficientnet_b0_20260606_101553.pt"
+    },
+    {
       "id": "MODEL-1B0061",
       "name": "2026-05-28 00:57:22 KST",
       "architecture": "ARCH-GATE-EFF",
@@ -800,6 +1120,81 @@
     }
   ],
   "feedback_items": [
+    {
+      "id": "FDBK-DD1CF1B6",
+      "feedback_type": "confirmed_anomaly",
+      "label": "anomaly",
+      "operator": "operator-01",
+      "comment": "이상 확정",
+      "line": "LINE-A",
+      "image_url": "/mlops-assets/feedback/5a44046d582a4c15bfcf288aa8606658.bmp",
+      "created_at": "2026-06-06T10:43:53",
+      "model_prediction": {
+        "gate_score": 1.0,
+        "heatmap_score": 5.416658878326416,
+        "predicted_label": "anomaly"
+      }
+    },
+    {
+      "id": "FDBK-D1836D93",
+      "feedback_type": "confirmed_anomaly",
+      "label": "anomaly",
+      "operator": "operator-01",
+      "comment": "이상 확정",
+      "line": "LINE-A",
+      "image_url": "/mlops-assets/feedback/2e3fba3460314d938a2c51ce7427694d.bmp",
+      "created_at": "2026-06-06T10:43:28",
+      "model_prediction": {
+        "gate_score": 1.0,
+        "heatmap_score": 4.039167881011963,
+        "predicted_label": "anomaly"
+      }
+    },
+    {
+      "id": "FDBK-075B03B7",
+      "feedback_type": "confirmed_anomaly",
+      "label": "anomaly",
+      "operator": "operator-01",
+      "comment": "이상 확정",
+      "line": "LINE-A",
+      "image_url": "/mlops-assets/feedback/b32cc245f51c4629aa8fd753e5da581b.bmp",
+      "created_at": "2026-06-06T10:41:14",
+      "model_prediction": {
+        "gate_score": 0.9999984502792358,
+        "heatmap_score": 5.008979320526123,
+        "predicted_label": "anomaly"
+      }
+    },
+    {
+      "id": "FDBK-D5509B83",
+      "feedback_type": "false_positive",
+      "label": "normal",
+      "operator": "operator-01",
+      "comment": "오탐 저장",
+      "line": "LINE-A",
+      "image_url": "/mlops-assets/feedback/ba13284cdd904d6b9ba1eca5abc4b9fc.bmp",
+      "created_at": "2026-06-06T10:29:00",
+      "model_prediction": {
+        "gate_score": 0.9999992847442627,
+        "heatmap_score": 3.894824504852295,
+        "predicted_label": "anomaly"
+      }
+    },
+    {
+      "id": "FDBK-2B5C069D",
+      "feedback_type": "confirmed_anomaly",
+      "label": "anomaly",
+      "operator": "operator-01",
+      "comment": "이상 확정",
+      "line": "LINE-A",
+      "image_url": "/mlops-assets/feedback/3f8f12f6eaf2461696f4336be6c6816b.bmp",
+      "created_at": "2026-06-06T10:14:46",
+      "model_prediction": {
+        "gate_score": 1.0,
+        "heatmap_score": 3.508641481399536,
+        "predicted_label": "anomaly"
+      }
+    },
     {
       "id": "FDBK-C7180D48",
       "feedback_type": "confirmed_anomaly",
@@ -1027,6 +1422,180 @@
     }
   ],
   "logs": [
+    {
+      "id": "6FE110A2",
+      "time": "2026-06-06T10:46:43",
+      "level": "warning",
+      "message": "Deployment Success: MODEL-F270E7 (File: )"
+    },
+    {
+      "id": "A5CF16B7",
+      "time": "2026-06-06T10:46:28",
+      "level": "warning",
+      "message": "Deployment Success: MODEL-39B866 (File: )"
+    },
+    {
+      "id": "49E930CE",
+      "time": "2026-06-06T10:46:25",
+      "level": "warning",
+      "message": "Deployment Success: MODEL-39B866 (File: )"
+    },
+    {
+      "id": "656AB08B",
+      "time": "2026-06-06T10:45:11",
+      "level": "success",
+      "message": "Training Completed: 2026-06-06 19:44:32 KST"
+    },
+    {
+      "id": "E16B08F4",
+      "time": "2026-06-06T10:44:41",
+      "level": "info",
+      "message": "Training Started: 2026-06-06 19:44:32 KST"
+    },
+    {
+      "id": "5C375EB3",
+      "time": "2026-06-06T10:44:17",
+      "level": "success",
+      "message": "Dataset materialized: DATA-FEEDBACK-44A78A (19 items)"
+    },
+    {
+      "id": "C41F456F",
+      "time": "2026-06-06T10:44:00",
+      "level": "success",
+      "message": "Dataset materialized: DATA-V3-PRODUCTION (1 items)"
+    },
+    {
+      "id": "CB53F79F",
+      "time": "2026-06-06T10:43:53",
+      "level": "info",
+      "message": "Data Ingested (S3 synced): confirmed_anomaly"
+    },
+    {
+      "id": "AB2C3EA4",
+      "time": "2026-06-06T10:43:41",
+      "level": "success",
+      "message": "Dataset materialized: DATA-V3-PRODUCTION (1 items)"
+    },
+    {
+      "id": "0BBF31F1",
+      "time": "2026-06-06T10:43:28",
+      "level": "info",
+      "message": "Data Ingested (S3 synced): confirmed_anomaly"
+    },
+    {
+      "id": "2A85A146",
+      "time": "2026-06-06T10:42:57",
+      "level": "success",
+      "message": "Dataset materialized: DATA-64E73DFD (17 items)"
+    },
+    {
+      "id": "1A0DE0C3",
+      "time": "2026-06-06T10:42:43",
+      "level": "warning",
+      "message": "Deployment Success: MODEL-8A4EB3 (File: )"
+    },
+    {
+      "id": "E73915A8",
+      "time": "2026-06-06T10:42:27",
+      "level": "success",
+      "message": "Training Completed: 2026-06-06 19:41:23 KST"
+    },
+    {
+      "id": "77897679",
+      "time": "2026-06-06T10:41:54",
+      "level": "info",
+      "message": "Training Started: 2026-06-06 19:41:23 KST"
+    },
+    {
+      "id": "83F405E3",
+      "time": "2026-06-06T10:41:54",
+      "level": "success",
+      "message": "Dataset materialized: DATA-V3-PRODUCTION (17 items)"
+    },
+    {
+      "id": "67DE6160",
+      "time": "2026-06-06T10:41:14",
+      "level": "info",
+      "message": "Data Ingested (S3 synced): confirmed_anomaly"
+    },
+    {
+      "id": "B9E97231",
+      "time": "2026-06-06T10:31:37",
+      "level": "success",
+      "message": "Dataset materialized: DATA-FEEDBACK-44A78A (17 items)"
+    },
+    {
+      "id": "F0A8D84F",
+      "time": "2026-06-06T10:31:09",
+      "level": "warning",
+      "message": "Deployment Success: MODEL-F270E7 (File: )"
+    },
+    {
+      "id": "B7B7A3FA",
+      "time": "2026-06-06T10:31:00",
+      "level": "success",
+      "message": "Training Completed: 2026-06-06 19:29:05 KST"
+    },
+    {
+      "id": "58B4E6C5",
+      "time": "2026-06-06T10:29:08",
+      "level": "info",
+      "message": "Training Started: 2026-06-06 19:29:05 KST"
+    },
+    {
+      "id": "E7F9B52E",
+      "time": "2026-06-06T10:29:08",
+      "level": "success",
+      "message": "Dataset materialized: DATA-C2BD0809 (16 items)"
+    },
+    {
+      "id": "4B1D8B99",
+      "time": "2026-06-06T10:29:00",
+      "level": "info",
+      "message": "Data Ingested (S3 synced): false_positive"
+    },
+    {
+      "id": "10A46CB8",
+      "time": "2026-06-06T10:20:37",
+      "level": "info",
+      "message": "Training Started: 2026-06-06 19:16:33 KST"
+    },
+    {
+      "id": "C2685AF1",
+      "time": "2026-06-06T10:20:37",
+      "level": "success",
+      "message": "Dataset materialized: DATA-C2BD0809 (15 items)"
+    },
+    {
+      "id": "1100AA4E",
+      "time": "2026-06-06T10:16:36",
+      "level": "warning",
+      "message": "Deployment Success: MODEL-F270E7 (File: )"
+    },
+    {
+      "id": "E6EA8F27",
+      "time": "2026-06-06T10:15:53",
+      "level": "success",
+      "message": "Training Completed: 2026-06-06 19:14:54 KST"
+    },
+    {
+      "id": "D03A21D0",
+      "time": "2026-06-06T10:15:01",
+      "level": "info",
+      "message": "Training Started: 2026-06-06 19:14:54 KST"
+    },
+    {
+      "id": "A6A96DA8",
+      "time": "2026-06-06T10:15:01",
+      "level": "success",
+      "message": "Dataset materialized: DATA-C2BD0809 (15 items)"
+    },
+    {
+      "id": "FD9B4222",
+      "time": "2026-06-06T10:14:46",
+      "level": "info",
+      "message": "Data Ingested (S3 synced): confirmed_anomaly"
+    },
     {
       "id": "987C810F",
       "time": "2026-05-27T15:59:08",
@@ -1299,14 +1868,14 @@
     }
   ],
   "deployment": {
-    "production_model_id": "MODEL-1B0061",
+    "production_model_id": "MODEL-F270E7",
     "staging_model_id": null,
     "canary_model_id": null,
     "canary_line": null
   },
   "runtime_config": {
     "ensemble_enabled": true,
-    "current_model_id": "MODEL-1B0061",
+    "current_model_id": "MODEL-F270E7",
     "gate_file": "gate_model.pt",
     "heatmap_file": "v3_patchcore_r18_patchcore.pt"
   },
@@ -1328,6 +1897,10 @@
     "retrained_efficientnet_b0_20260527_155129.pt",
     "retrained_efficientnet_b0_20260527_155455.pt",
     "retrained_efficientnet_b0_20260527_155856.pt",
+    "retrained_efficientnet_b0_20260606_101553.pt",
+    "retrained_efficientnet_b0_20260606_103059.pt",
+    "retrained_efficientnet_b0_20260606_104226.pt",
+    "retrained_efficientnet_b0_20260606_104510.pt",
     "round1_effnetb0_gate.pt",
     "round1_mnv3_large_gate.pt",
     "round1_patchcore_r18_patchcore.pt",

@@ -74,6 +74,7 @@ type BackendTrainingStatus = {
   message?: string;
   epoch?: number;
   metrics?: Record<string, number>;
+  stop_requested?: boolean;
 };
 
 type FeedbackMaterializeItem = Pick<FeedbackItem, "id" | "image_url" | "label" | "feedback_type">;
@@ -345,6 +346,11 @@ function mergeTrainingStatus(runs: TrainingRun[], trainingStatus: BackendTrainin
   const normalizedRuns = normalizeRuns(runs);
 
   if (!trainingStatus?.is_running) {
+    if (trainingStatus?.message === "STOPPED" || trainingStatus?.message?.startsWith("ERROR:")) {
+      writeLocalTraining(null);
+      return normalizedRuns;
+    }
+
     const localTraining = readLocalTraining();
     if (localTraining && hasCompletedAfterLocalTraining(normalizedRuns, localTraining)) {
       writeLocalTraining(null);
@@ -364,11 +370,11 @@ function mergeTrainingStatus(runs: TrainingRun[], trainingStatus: BackendTrainin
   const activeRun: TrainingRun = {
     ...existing,
     id: existing?.id ?? localTraining?.id ?? "LIVE-TRAINING",
-    status: "running",
+    status: trainingStatus.stop_requested ? "stopping" : "running",
     progress: Math.min(100, Math.max(0, trainingStatus.progress ?? 0)),
     current_step: trainingStatus.message ?? "TRAINING",
     final_metrics: trainingStatus.metrics,
-    epochs: trainingStatus.epoch,
+    epochs: existing?.epochs ?? localTraining?.epochs ?? trainingStatus.epoch,
     architecture: existing?.architecture ?? localTraining?.architecture ?? "ARCH-GATE-EFF",
     dataset_version_id: existing?.dataset_version_id ?? localTraining?.datasetVersionId,
     base_model_version_id: existing?.base_model_version_id ?? localTraining?.baseModelVersionId,
@@ -663,7 +669,7 @@ export async function rollbackDeployment(
 
 export function stopTrainingRun(runId?: string) {
   void runId;
-  return request("/mlops/training/status");
+  return request("/mlops/training/stop", { method: "POST" });
 }
 
 export function saveTrainingRecipe(payload: TrainingRecipe) {

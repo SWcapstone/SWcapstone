@@ -74,8 +74,11 @@ export function TrainDeployView({
 
   const selectedRecipe = recipes.find((recipe) => recipe.id === selectedRecipeId) ?? firstRecipe;
   const selectedDeployModel = dashboard.model_versions.find((model) => model.id === selectedDeployModelId) ?? candidateModel;
+  const selectedDataset = dashboard.dataset_versions.find((dataset) => dataset.id === selectedDatasetId);
+  const appliedFeedbackIds = new Set(selectedDataset?.materialized_feedback_item_ids ?? []);
   const runProgress = Math.min(100, Math.max(0, latestRun?.progress ?? 0));
   const runTone = latestRun?.status === "completed" ? "green" : latestRun?.status === "failed" ? "red" : activeRun ? "amber" : "blue";
+  const runMetrics = latestRun?.final_metrics ?? {};
 
   function selectRecipe(recipe: TrainingRecipe) {
     setSelectedRecipeId(recipe.id);
@@ -110,6 +113,7 @@ export function TrainDeployView({
       setMessage("");
       const trainingFeedbackIds = dashboard.feedback_items
         .filter((item) => item.label === "normal" || item.label === "anomaly")
+        .filter((item) => !appliedFeedbackIds.has(item.id))
         .map((item) => item.id);
       if (trainingFeedbackIds.length) {
         await materializeFeedbackDataset({
@@ -317,6 +321,14 @@ export function TrainDeployView({
               </div>
               <div className="mt-3 flex justify-between text-sm font-bold text-slate-600">
                 <span>{runProgress}%</span><span>{latestRun?.device ?? "cpu"}</span><span>{latestRun?.name ?? selectedRecipe?.name ?? "-"}</span>
+              </div>
+              <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs font-bold text-slate-500">
+                <span>{latestRun?.current_step ?? "IDLE"}</span>
+                {runMetrics.val_f1 !== undefined || runMetrics.val_loss !== undefined ? (
+                  <span>
+                    F1 {runMetrics.val_f1?.toFixed?.(4) ?? "-"} / loss {runMetrics.val_loss?.toFixed?.(4) ?? "-"}
+                  </span>
+                ) : null}
               </div>
             </div>
 

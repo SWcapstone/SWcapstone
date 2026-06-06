@@ -35,7 +35,7 @@ from torchvision import transforms, models
 from src.heatmap_model import PatchCoreModel
 from src.s3_utils import S3Utils
 from src.device_utils import get_device
-from src.train_engine import TrainEngine
+from src.train_engine import TrainEngine, TrainingStoppedError
 
 # --- Global Config ---
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -67,7 +67,7 @@ train_engine = TrainEngine(s3_utils=s3_utils)
 _production_gate = None
 _heatmap_model = None
 _ensemble_enabled = True 
-_training_status = {"is_running": False, "progress": 0, "message": "IDLE", "epoch": 0}
+_training_status = {"is_running": False, "progress": 0, "message": "IDLE", "epoch": 0, "stop_requested": False}
 
 # --- State Management Helpers ---
 def _iso_now() -> str: return datetime.now().isoformat(timespec="seconds")
@@ -378,7 +378,7 @@ async def run_training_process(req: TrainRequest):
             "metrics": metrics or _training_status.get("metrics", {"loss": 0, "acc": 0})
         })
 
-    _training_status.update({"is_running": True, "message": "STARTING", "progress": 0, "epoch": 0})
+    _training_status.update({"is_running": True, "message": "STARTING", "progress": 0, "epoch": 0, "stop_requested": False})
     _append_log(state, "info", f"Training Started: {req.model_name or req.architecture}")
     _save_state(state)
     
@@ -389,7 +389,7 @@ async def run_training_process(req: TrainRequest):
         else:
             result = await train_engine.train_heatmap(req.dict(), _status_cb)
         
-        _training_status.update({"is_running": False, "message": "COMPLETED", "progress": 100})
+        _training_status.update({"is_running": False, "message": "COMPLETED", "progress": 100, "stop_requested": False})
         
         state = _load_state()
         new_model_id = result["model_id"]
@@ -408,15 +408,27 @@ async def run_training_process(req: TrainRequest):
         })
         _append_log(state, "success", f"Training Completed: {display_name}")
         _save_state(state)
+    except TrainingStoppedError:
+        logger.info("Training stopped by user request.")
+        _training_status.update({"is_running": False, "message": "STOPPED", "progress": 0, "stop_requested": False})
     except Exception as e:
         logger.error(f"Retraining error: {e}")
-        _training_status.update({"is_running": False, "message": f"ERROR: {str(e)}"})
+        _training_status.update({"is_running": False, "message": f"ERROR: {str(e)}", "stop_requested": False})
 
 @app.post("/mlops/train")
 async def start_training(req: TrainRequest, background_tasks: BackgroundTasks):
     if _training_status["is_running"]: raise HTTPException(400, "Training in progress")
     background_tasks.add_task(run_training_process, req)
     return {"message": "Training started", "config": req}
+
+@app.post("/mlops/training/stop")
+async def stop_training():
+    if not _training_status.get("is_running"):
+        return {"message": "No training is running", "status": _training_status}
+
+    train_engine.stop()
+    _training_status.update({"message": "STOPPING", "stop_requested": True})
+    return {"message": "Stop requested", "status": _training_status}
 
 # --- Deployment & Deletion Control ---
 class DeployRequest(BaseModel):
@@ -436,9 +448,10 @@ async def materialize_dataset(req: MaterializeRequest):
     """분류된 피드백 데이터를 실제 학습용 데이터셋(CSV)으로 변환 및 확정"""
     state = _load_state()
     feedback_items = [fb for fb in state["feedback_items"] if fb["id"] in req.feedback_item_ids]
+    feedback_items = [fb for fb in feedback_items if fb.get("label") in ("normal", "anomaly")]
     
     if not feedback_items:
-        raise HTTPException(400, "No valid feedback items selected")
+        raise HTTPException(400, "No labeled feedback items selected")
 
     # 1. 새로운 데이터셋 버전 생성 또는 기존 업데이트
     if req.mode == "new":
@@ -449,6 +462,7 @@ async def materialize_dataset(req: MaterializeRequest):
             "status": "prepared",
             "sample_count": len(feedback_items),
             "feedback_count": len(feedback_items),
+            "materialized_feedback_item_ids": [fb["id"] for fb in feedback_items],
             "samples": [],
             "updated_at": _iso_now(),
             "notes": f"Materialized from {len(feedback_items)} feedback items"
@@ -460,8 +474,13 @@ async def materialize_dataset(req: MaterializeRequest):
         target_id = req.target_dataset_id or state["active_dataset_id"]
         ds = next((d for d in state["dataset_versions"] if d["id"] == target_id), None)
         if not ds: raise HTTPException(404, "Target dataset not found")
+        materialized_ids = set(ds.get("materialized_feedback_item_ids", []))
+        feedback_items = [fb for fb in feedback_items if fb["id"] not in materialized_ids]
+        if not feedback_items:
+            raise HTTPException(400, "No new labeled feedback items to apply")
         ds["sample_count"] += len(feedback_items)
         ds["feedback_count"] += len(feedback_items)
+        ds["materialized_feedback_item_ids"] = sorted(materialized_ids | {fb["id"] for fb in feedback_items})
         ds["updated_at"] = _iso_now()
 
     # 2. 물리적 CSV 생성 (학습 엔진이 참조할 용도)

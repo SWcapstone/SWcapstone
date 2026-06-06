@@ -21,6 +21,7 @@ export type DatasetVersion = {
   source_dataset_id?: string | null;
   sample_count: number;
   feedback_count: number;
+  materialized_feedback_item_ids?: string[];
   notes?: string;
   samples?: DatasetSample[];
 };
